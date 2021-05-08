@@ -1,0 +1,18 @@
+{
+    "os": "Linux-5.4.0-72-generic-x86_64-with-debian-buster-sid",
+    "python": "3.7.10",
+    "heartbeatAt": "2021-04-25T14:26:37.646302",
+    "startedAt": "2021-04-25T14:26:31.194391",
+    "docker": null,
+    "gpu": "TITAN Xp",
+    "gpu_count": 1,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/gavin/PycharmProjects/Thesis/6_training.py",
+    "codePath": "6_training.py",
+    "host": "106",
+    "username": "gavin",
+    "executable": "/home/gavin/anaconda3/envs/Thesis/bin/python"
+}

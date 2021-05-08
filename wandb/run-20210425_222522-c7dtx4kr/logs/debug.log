@@ -1,0 +1,31 @@
+2021-04-25 22:25:22,607 INFO    MainThread:29222 [wandb_setup.py:_flush():69] setting env: {}
+2021-04-25 22:25:22,607 INFO    MainThread:29222 [wandb_setup.py:_flush():69] setting login settings: {}
+2021-04-25 22:25:22,608 INFO    MainThread:29222 [wandb_init.py:_log_setup():336] Logging user logs to /home/gavin/PycharmProjects/Thesis/wandb/run-20210425_222522-c7dtx4kr/logs/debug.log
+2021-04-25 22:25:22,608 INFO    MainThread:29222 [wandb_init.py:_log_setup():337] Logging internal logs to /home/gavin/PycharmProjects/Thesis/wandb/run-20210425_222522-c7dtx4kr/logs/debug-internal.log
+2021-04-25 22:25:22,608 INFO    MainThread:29222 [wandb_init.py:init():369] calling init triggers
+2021-04-25 22:25:22,608 INFO    MainThread:29222 [wandb_init.py:init():376] wandb.init called with sweep_config: {}
+config: {'model': 'lf', 'dataset': 'type10', 'n_features': 27, 'n_hidden': 512, 'seq_len': 672, 'n_layers': 2, 'out_features': 96, 'do': 0.2, 'batch_size': 64, 'client_optimizer': 'adam', 'lr': 0.0005, 'wd': 0.001, 'epochs': 150, 'frequency_of_the_test': 10, 'gpu': 0, 'ci': 0}
+2021-04-25 22:25:22,608 INFO    MainThread:29222 [wandb_init.py:init():418] starting backend
+2021-04-25 22:25:22,609 INFO    MainThread:29222 [backend.py:_multiprocessing_setup():71] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2021-04-25 22:25:22,630 INFO    MainThread:29222 [backend.py:ensure_launched():123] starting backend process...
+2021-04-25 22:25:22,995 INFO    MainThread:29222 [backend.py:ensure_launched():128] started backend process with pid: 29245
+2021-04-25 22:25:22,996 INFO    MainThread:29222 [wandb_init.py:init():423] backend started and connected
+2021-04-25 22:25:22,998 INFO    MainThread:29222 [wandb_init.py:init():465] updated telemetry
+2021-04-25 22:25:22,999 INFO    MainThread:29222 [wandb_init.py:init():484] communicating current version
+2021-04-25 22:25:23,155 WARNING MainThread:29222 [wandb_init.py:init():764] interrupted
+Traceback (most recent call last):
+  File "/home/gavin/anaconda3/envs/Thesis/lib/python3.7/site-packages/wandb/sdk/wandb_init.py", line 744, in init
+    run = wi.init()
+  File "/home/gavin/anaconda3/envs/Thesis/lib/python3.7/site-packages/wandb/sdk/wandb_init.py", line 486, in init
+    current_version=wandb.__version__
+  File "/home/gavin/anaconda3/envs/Thesis/lib/python3.7/site-packages/wandb/sdk/interface/interface.py", line 773, in communicate_check_version
+    result = self._communicate(rec)
+  File "/home/gavin/anaconda3/envs/Thesis/lib/python3.7/site-packages/wandb/sdk/interface/interface.py", line 533, in _communicate
+    return self._communicate_async(rec, local=local).get(timeout=timeout)
+  File "/home/gavin/anaconda3/envs/Thesis/lib/python3.7/site-packages/wandb/sdk/interface/interface.py", line 82, in get
+    is_set = self._object_ready.wait(timeout)
+  File "/home/gavin/anaconda3/envs/Thesis/lib/python3.7/threading.py", line 552, in wait
+    signaled = self._cond.wait(timeout)
+  File "/home/gavin/anaconda3/envs/Thesis/lib/python3.7/threading.py", line 300, in wait
+    gotit = waiter.acquire(True, timeout)
+KeyboardInterrupt

@@ -1,0 +1,24 @@
+{
+    "os": "Linux-5.4.0-72-generic-x86_64-with-debian-buster-sid",
+    "python": "3.7.4",
+    "heartbeatAt": "2021-04-26T15:46:58.827623",
+    "startedAt": "2021-04-26T15:46:56.702708",
+    "docker": null,
+    "gpu": "TITAN Xp",
+    "gpu_count": 1,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/gavin/Documents/GitHub/FedML/fedml_experiments/standalone/fedavg/test.py",
+    "codePath": "fedml_experiments/standalone/fedavg/test.py",
+    "git": {
+        "remote": "https://github.com/FedML-AI/FedML.git",
+        "commit": "258fdf8b4a5d0369df4695c9496d8e712d48bb2f"
+    },
+    "email": "gavinv0701@gmail.com",
+    "root": "/home/gavin/Documents/GitHub/FedML",
+    "host": "106",
+    "username": "gavin",
+    "executable": "/home/gavin/miniconda/envs/fedml/bin/python"
+}
