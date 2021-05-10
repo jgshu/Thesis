@@ -42,7 +42,7 @@ def testing(base_path, args, specific_user_id):
 
     # 导入测试集
     normalization_tvt_path = base_path + 'data/type_%s/day_%s/%s_normalization_tvt/' % (
-        args.type_num, args.norm, args.day_range)
+        args.type_num, args.day_range, args.norm)
 
     test_x = np.load(normalization_tvt_path + file_name + 'test_x_range_%s.npy' % args.train_range)
     test_y = np.load(normalization_tvt_path + file_name + 'test_y_range_%s.npy' % args.train_range)
