@@ -9,7 +9,7 @@ import argparse
 import copy
 import logging
 from datetime import datetime
-from .data_preprocessing.utils import find_files
+from data_preprocessing.utils import find_files
 
 
 def add_args(parser):
@@ -18,16 +18,16 @@ def add_args(parser):
     return a parser added with args required by fit
     """
     # Training settings
-    parser.add_argument('--day_range', type=int, default=96, metavar='N',
+    parser.add_argument('--day_range', type=int, default=48, metavar='N',
                         help='day_range')
 
-    parser.add_argument('--train_range', type=int, default=365, metavar='N',
+    parser.add_argument('--train_range', type=int, default=426, metavar='N',
                         help='day_range')
 
     parser.add_argument('--norm', type=str, default='standard', metavar='N',
                         help='normalization')
 
-    parser.add_argument('--model', type=str, default='lf', metavar='N',
+    parser.add_argument('--model', type=str, default='SLSTM', metavar='N',
                         help='neural network used in training')
 
     parser.add_argument('--type_num', type=int, default=10, metavar='N',
@@ -39,13 +39,13 @@ def add_args(parser):
     parser.add_argument('--n_hidden', type=int, default=512, metavar='N',
                         help='number of hidden nodes')
 
-    parser.add_argument('--seq_len', type=int, default=672, metavar='N',
+    parser.add_argument('--seq_len', type=int, default=336, metavar='N',
                         help='sequence length')
 
     parser.add_argument('--n_layers', type=int, default=2, metavar='N',
                         help='number of layers')
 
-    parser.add_argument('--out_features', type=int, default=96, metavar='N',
+    parser.add_argument('--out_features', type=int, default=48, metavar='N',
                         help='number of out features')
 
     parser.add_argument('--do', type=float, default=0.2, metavar='N',
@@ -85,10 +85,10 @@ def load_partition_data_industry_load(normalization_tvt_path, args, specific_use
         if user_id == specific_user_id:
             logging.info('-------' + co_name + '--------')
             logging.info('-------' + user_id + '--------')
-            train_x = np.load(normalization_tvt_path + file_name + 'train_x_range_%s.npy' % args.train_range)
-            train_y = np.load(normalization_tvt_path + file_name + 'train_y_range_%s.npy' % args.train_range)
-            validation_x = np.load(normalization_tvt_path + file_name + 'validation_x_range_%s.npy' % args.train_range)
-            validation_y = np.load(normalization_tvt_path + file_name + 'validation_y_range_%s.npy' % args.train_range)
+            train_x = np.load(normalization_tvt_path + file_name + '/train_x_range_%s.npy' % args.train_range)
+            train_y = np.load(normalization_tvt_path + file_name + '/train_y_range_%s.npy' % args.train_range)
+            validation_x = np.load(normalization_tvt_path + file_name + '/validation_x_range_%s.npy' % args.train_range)
+            validation_y = np.load(normalization_tvt_path + file_name + '/validation_y_range_%s.npy' % args.train_range)
             break
 
     # 判断是否有Nan
@@ -132,9 +132,8 @@ def load_data(base_path, args, user_id):
 def create_model(args, device, model_name, output_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
 
-    logging.info("SLSTM +", args.type_num)
     model = SLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
-                  n_layers=args.n_layers, out_features=args.out_features,do=args.do,
+                  n_layers=args.n_layers, out_features=args.out_features, do=args.do,
                   device=device).to(device)
 
     return model
@@ -167,7 +166,7 @@ def test(dataset, b_use_test_dataset, device, model):
     return metrics
 
 
-def train(dataset, args, device, model):
+def train(base_path, dataset, args, device, model):
     train_data = dataset[0]
     model.to(device)
 
@@ -192,9 +191,8 @@ def train(dataset, args, device, model):
             x, labels = x.to(device), labels.to(device)
             model.zero_grad()
             log_probs = model(x)
-            loss = criterion(log_probs, labels)
+            loss = criterion(log_probs.view(-1), labels.view(-1))
             loss.backward()
-
             optimizer.step()
             batch_loss.append(loss.item())
         epoch_loss.append(sum(batch_loss) / len(batch_loss))
@@ -238,9 +236,13 @@ def train(dataset, args, device, model):
 
             now = datetime.now()
             dt_string = now.strftime("%Y%m%d-%H%M%S")
-            torch.save(model.state_dict(), './temp-%s.pth' % dt_string)
 
-def training(base_path, type_num):
+            model_path = base_path + 'output/model/'
+            if not os.path.exists(model_path):
+                os.makedirs(model_path)
+            torch.save(model.state_dict(), model_path + 'temp-%s.pth' % dt_string)
+
+def training(base_path):
     logging.basicConfig()
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
@@ -267,6 +269,6 @@ def training(base_path, type_num):
     model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
     logging.info(model)
 
-    train(dataset, args, device, model)
+    train(base_path, dataset, args, device, model)
 
 

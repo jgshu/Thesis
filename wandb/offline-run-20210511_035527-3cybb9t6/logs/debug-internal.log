@@ -1,0 +1,13 @@
+2021-05-11 03:55:27,682 INFO    MainThread:30931 [internal.py:wandb_internal():91] W&B internal server running at pid: 30931, started at: 2021-05-11 03:55:27.682766
+2021-05-11 03:55:27,684 INFO    WriterThread:30931 [datastore.py:open_for_write():77] open: /home/gavin/Documents/GitHub/Thesis/wandb/offline-run-20210511_035527-3cybb9t6/run-3cybb9t6.wandb
+2021-05-11 03:55:27,685 DEBUG   HandlerThread:30931 [handler.py:handle_request():120] handle_request: run_start
+2021-05-11 03:55:27,687 DEBUG   HandlerThread:30931 [meta.py:__init__():39] meta init
+2021-05-11 03:55:27,687 DEBUG   HandlerThread:30931 [meta.py:__init__():53] meta init done
+2021-05-11 03:55:27,687 DEBUG   HandlerThread:30931 [meta.py:probe():210] probe
+2021-05-11 03:55:27,693 DEBUG   HandlerThread:30931 [meta.py:_setup_git():200] setup git
+2021-05-11 03:55:27,700 DEBUG   HandlerThread:30931 [meta.py:_setup_git():207] setup git done
+2021-05-11 03:55:27,700 DEBUG   HandlerThread:30931 [meta.py:_save_pip():57] save pip
+2021-05-11 03:55:27,700 DEBUG   HandlerThread:30931 [meta.py:_save_pip():71] save pip done
+2021-05-11 03:55:27,700 DEBUG   HandlerThread:30931 [meta.py:_save_conda():78] save conda
+2021-05-11 03:55:28,806 DEBUG   HandlerThread:30931 [meta.py:_save_conda():86] save conda done
+2021-05-11 03:55:28,806 DEBUG   HandlerThread:30931 [meta.py:probe():252] probe done

@@ -6,7 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 import os
 import logging
-from .data_preprocessing.utils import find_files
+from data_preprocessing.utils import find_files
 import eval
 
 

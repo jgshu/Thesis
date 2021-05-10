@@ -10,6 +10,8 @@ from data_preprocessing.anomaly_detection import anomaly_detection
 from data_preprocessing.data_normalization import data_normalization
 from data_preprocessing.train_validation_test_split import train_validation_test_split
 from daily_load_plotting import daily_load_plotting
+from training import training
+from testing import testing
 
 
 def before_normalization(base_path, type_num):
@@ -32,16 +34,18 @@ def normalization_and_split(base_path, type_num, day_range=96, norm='minmax'):
 
 def data_preprocessing(base_path, type_num):
     # before_normalization(base_path, type_num)
-    # normalization_and_split(base_path, type_num, day_range=24, norm='minmax')
+    normalization_and_split(base_path, type_num, day_range=24, norm='minmax')
     # normalization_and_split(base_path, type_num, day_range=24, norm='standard')
     # normalization_and_split(base_path, type_num, day_range=48, norm='minmax')
-    normalization_and_split(base_path, type_num, day_range=48, norm='standard')
+    # normalization_and_split(base_path, type_num, day_range=48, norm='standard')
     # normalization_and_split(base_path, type_num, day_range=96, norm='minmax')
     # normalization_and_split(base_path, type_num, day_range=96, norm='standard')
 
 if __name__ == '__main__':
     base_path = '../../../Downloads/Thesis-temp/'
     type_num = 10
-    data_preprocessing(base_path, type_num)
+    # data_preprocessing(base_path, type_num)
     # daily_load_plotting(base_path, type_num, day_range=96, norm='minmax')
     # daily_load_plotting(base_path, type_num, day_range=48, norm='minmax')
+    training(base_path)
+    testing(base_path)
