@@ -8,14 +8,12 @@ from .utils import last_hour_interpolation
 
 def weather_data_preprocessing(base_path):
     # 导入天气数据
-    # print('Loading weather data...')
     weather_original_path = base_path + 'data/weather_original/'
     weather_file = weather_original_path + 'nanjing_weather.csv'
     weather_df = pd.read_csv(weather_file)
     weather_df.drop(['站点', '经度', '纬度', '省份', '市', '区（县）'], axis=1, inplace=True)
 
     # 使用Last Hour Interpolation对weatherDF插值，时间间隔从1h转变为15min
-    # print('1 hour to 15 minutes...')
     weather_features = weather_df.columns.values
     post_interpolation = []
 
@@ -63,7 +61,6 @@ def weather_data_preprocessing(base_path):
 
 def extract_missing_date(df):
     # 提取user缺失的日期
-    # print('Extracting missing date...')
     cnt = 0
     missing_date_list = []
     date = np.datetime64('2015-01-01T00:00:00.00')
@@ -74,16 +71,15 @@ def extract_missing_date(df):
             missing_date_list.append(date)
             cnt = cnt + 1
         date = date + np.timedelta64(1, 'D')
-    # 只提取缺少5天的
-    # if cnt <= 5:
-    #     user_id_missing_date_dict[userID] = missing_date_list
+    # TODO: 只提取缺少x天的
+    if cnt <= 5:
+        pass
 
     return missing_date_list
 
 
 def fill_missing_date(df, missing_date_list):
     # 缺失的数据用下周的数据填充
-    # print('Filling missing data...')
     index = df.index
     print('Number of missing date:', len(missing_date_list))
     for missing_date in missing_date_list:
@@ -151,9 +147,7 @@ def get_date_list():
 
 
 def generate_features(load_df, weather_df, holidays_date_list, special_workday_date_list):
-
     # 添加workday和holiday特征
-    # print('Generating features: workday, holiday...')
     cols = ['data_date', 'year_2015', 'year_2016', 'workday_0', 'workday_1', 'holiday_0', 'holiday_1',
             'day_of_week_0', 'day_of_week_1', 'day_of_week_2', 'day_of_week_3', 'day_of_week_4',
             'day_of_week_5', 'day_of_week_6', 'month_sin', 'month_cos', 'day_sin', 'day_cos',
@@ -184,17 +178,15 @@ def generate_features(load_df, weather_df, holidays_date_list, special_workday_d
     load_df['minute'] = load_df['data_date'].dt.minute
 
     # 将month，day, hour, minute特征转变为sin，cos分量
-    # print('Sin, Cos...')
     load_df = encode(load_df, 'month', 12)
     load_df = encode(load_df, 'day', 365)
     load_df = encode(load_df, 'hour', 24)
     load_df = encode(load_df, 'minute', 60)
 
     # 合并load和weather
-    # print('Merging load df and weahter df...')
     df = pd.concat([load_df, weather_df], axis=1, join='inner')
 
-    # print('One hot...')
+    # One-hot
     df = pd.get_dummies(df, prefix=['day_of_week'], columns=['day_of_week'])
     df = pd.get_dummies(df, prefix=['year'], columns=['year'])
     df = pd.get_dummies(df, prefix=['workday'], columns=['workday'])
@@ -202,6 +194,7 @@ def generate_features(load_df, weather_df, holidays_date_list, special_workday_d
     df = df[cols]
 
     return df
+
 
 def load_data_proprecessing(type_path, weather_df):
     # 获取工作日和节假日信息
@@ -219,11 +212,9 @@ def load_data_proprecessing(type_path, weather_df):
         user_id_co_name_dict[user_id] = co_name
 
         # 导入行业负荷数据
-        # print('Loading industry load...')
         df = pd.read_csv(type_path + file_name + '.csv')
 
         # 修改数据的格式
-        # print('Modifying data format...')
         df['DATA_DATE'] = pd.to_datetime(df['DATA_DATE'])
         df['day_of_week'] = df['DATA_DATE'].dt.dayofweek
         df.drop(['CONS_NO'], axis=1, inplace=True)
@@ -249,7 +240,7 @@ def load_data_proprecessing(type_path, weather_df):
 
 def feature_engineering(base_path, type_num, sum_flag=False, sum_user_id_list=[]):
     type_path = base_path + 'data/industry_load_by_type/%s/' % type_num
-    type_num_original_path = base_path + 'data/type_%s_original/' % type_num
+    type_num_original_path = base_path + 'data/type_%s/original/' % type_num
 
     if sum_flag:
         print('Sum of load files...')
@@ -266,7 +257,7 @@ def feature_engineering(base_path, type_num, sum_flag=False, sum_user_id_list=[]
                     sum_load_df = sum_load_df + df['load']
         sum_df = df.copy()
         sum_df['load'] = sum_load_df
-        print('Saving original sum csv files...')
+        print('Saving original sum csv file...')
         sum_df.to_csv(type_num_original_path + 'type%s_%s.csv' % (type_num, type_num), index=False)
 
     else:
@@ -281,9 +272,11 @@ def feature_engineering(base_path, type_num, sum_flag=False, sum_user_id_list=[]
 
         if not os.path.exists(type_num_original_path):
             os.makedirs(type_num_original_path)
+
         for user_id in user_id_df_dict.keys():
             df = user_id_df_dict[user_id]
             co_name = user_id_co_name_dict[user_id]
+            print('Saving %s - %s csv file...' % (co_name, user_id))
             df.to_csv(type_num_original_path + '%s_%s.csv' % (co_name, user_id), index=False)
 
 

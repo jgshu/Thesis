@@ -4,15 +4,9 @@ import os
 from .utils import find_files
 from .utils import create_dataset
 
-def train_test_split(base_path, type_num, n_predictions, n_next, train_range, test_range, sum_flag=False):
-    # 可调参数
-    date_range = 90
-    n_predictions = 96 * 7
-    n_next = 96
-    # n_predictions = 96
-    # n_next = 1
 
-    type_num_normalization_path =  base_path + 'data/type_%s_normalization/' % type_num
+def train_test_split(base_path, type_num, n_predictions, n_next, train_range, test_range, day_range=96, norm='minmax', sum_flag=False):
+    type_num_normalization_path = base_path + 'data/type_%s/day_%s/%s_normalization/' % (type_num, day_range, norm)
     sum_filename = 'type%s_%s' % (type_num, type_num)
     file_names_list = find_files(type_num_normalization_path)
 
@@ -42,25 +36,27 @@ def train_test_split(base_path, type_num, n_predictions, n_next, train_range, te
         test_data = data[96 * train_range: 96 * (train_range + test_range), :]
         test_load = load[96 * train_range: 96 * (train_range + test_range), :]
 
-        train_x, _ = create_dataset(train_data, n_predictions, n_next)  # 前一周96 * 7个点预测当天96个点
+        train_x, _ = create_dataset(train_data, n_predictions, n_next)  # n_predictions个点预测n_next个点
         _, train_y = create_dataset(train_load, n_predictions, n_next)
-        test_x, _ = create_dataset(test_data, n_predictions, n_next)  # 前一周96 * 7个点预测当天96个点
+        test_x, _ = create_dataset(test_data, n_predictions, n_next)
         _, test_y = create_dataset(test_load, n_predictions, n_next)
 
-        # # 只有负荷
-        # train_x, _ = create_dataset(train_load, n_predictions, n_next)  # 前一周96 * 7个点预测当天96个点
+        # 只有负荷
+        # train_x, _ = create_dataset(train_load, n_predictions, n_next)  # n_predictions个点预测n_next个点
         # _, train_y = create_dataset(train_load, n_predictions, n_next)
-        # test_x, _ = create_dataset(test_load, n_predictions, n_next)  # 前一周96 * 7个点预测当天96个点
+        # test_x, _ = create_dataset(test_load, n_predictions, n_next)
         # _, test_y = create_dataset(test_load, n_predictions, n_next)
 
-        co_name_user_id_path = base_path + 'data/train_test/type%s/%s_%s/' % (type_num, co_name, user_id)
-        if not os.path.exists(co_name_user_id_path):
-            os.makedirs(co_name_user_id_path)
+        normalization_tt_path = base_path + 'data/type_%s/day_%s/%s_normalization_tt/' % (
+        type_num, norm, day_range)
+        if not os.path.exists(normalization_tt_path):
+            os.makedirs(normalization_tt_path)
 
-        np.save(co_name_user_id_path + 'train_x_days_%s.npy' % train_range, train_x)
-        np.save(co_name_user_id_path + 'train_y_days_%s.npy' % train_range, train_y)
-        np.save(co_name_user_id_path + 'test_x_days_%s.npy' % train_range, test_x)
-        np.save(co_name_user_id_path + 'test_y_days_%s.npy' % train_range, test_y)
+        print('Saving %s - %s npy file...' % (co_name, user_id))
+        np.save(normalization_tt_path + '%s_%s/train_x_range_%s.npy' % (co_name, user_id, train_range), train_x)
+        np.save(normalization_tt_path + '%s_%s/train_y_range_%s.npy' % (co_name, user_id, train_range), train_y)
+        np.save(normalization_tt_path + '%s_%s/test_x_range_%s.npy' % (co_name, user_id, train_range), test_x)
+        np.save(normalization_tt_path + '%s_%s/test_y_range_%s.npy' % (co_name, user_id, train_range), test_y)
 
     # 测试划分正确性
     # np.random.seed(0)

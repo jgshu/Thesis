@@ -9,7 +9,6 @@ def split_data_by_trade_type(base_path):
     info_file = industry_load_original_path + 'industry_user_info.csv'
     info_df = pd.read_csv(info_file)
 
-
     # 获取所有用户的ID
     print('Loading userDF...')
     userIDs = []

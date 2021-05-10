@@ -43,7 +43,6 @@ def anomaly_replace(data, df_len, err_idx_list):
 
 def three_sigma_alg(base_path, type_num, df, user_id, co_name):
     data = df['load']
-
     # 创建数据
     u = data.mean()  # 计算均值
     std = data.std()  # 计算标准差
@@ -57,7 +56,6 @@ def three_sigma_alg(base_path, type_num, df, user_id, co_name):
             'weight': 'normal',
             'size': 50,
             }
-
     detection_num = 1
     while len(err_idx_list) > 0:
         # 正态性检验
@@ -78,10 +76,10 @@ def three_sigma_alg(base_path, type_num, df, user_id, co_name):
         plt.grid()
 
         # 保存图片
-        anomaly_detection_path = base_path + 'output/img/anomaly_detection/%s' % type_num
+        anomaly_detection_path = base_path + 'output/img/type_%s/anomaly_detection/' % type_num
         if not os.path.exists(anomaly_detection_path):
             os.makedirs(anomaly_detection_path)
-        plt.savefig(anomaly_detection_path + '/%s_%s_%d.png' % (co_name, user_id, detection_num))
+        plt.savefig(anomaly_detection_path + '%s_%s_%d.png' % (co_name, user_id, detection_num))
         # plt.show()
 
         # 前后取均值替换异常数据
@@ -99,8 +97,8 @@ def three_sigma_alg(base_path, type_num, df, user_id, co_name):
 
 
 def anomaly_detection(base_path, type_num, sum_flag=False):
-    type_num_original_path = base_path + 'data/type_%s_original/' % type_num
-    type_num_after_anomaly_detection_path = base_path + 'data/type_%s_after_anomaly_detection/' % type_num
+    type_num_original_path = base_path + 'data/type_%s/original/' % type_num
+    type_num_after_anomaly_detection_path = base_path + 'data/type_%s/after_anomaly_detection/' % type_num
     sum_filename = 'type%s_%s' % (type_num, type_num)
     file_names_list = find_files(type_num_original_path)
 

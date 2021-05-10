@@ -2,19 +2,14 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
-# from lstm_model import RNN_LoadForecastser
-from lstm_model_2 import LoadForecastser
-from sklearn.preprocessing import MinMaxScaler
-import math
-from sklearn.metrics import mean_squared_error
-import matplotlib.pyplot as plt
+from model import SLSTM
 import os
 import wandb
 import argparse
 import copy
 import logging
-import sys
 from datetime import datetime
+from .data_preprocessing.utils import find_files
 
 
 def add_args(parser):
@@ -23,10 +18,19 @@ def add_args(parser):
     return a parser added with args required by fit
     """
     # Training settings
+    parser.add_argument('--day_range', type=int, default=96, metavar='N',
+                        help='day_range')
+
+    parser.add_argument('--train_range', type=int, default=365, metavar='N',
+                        help='day_range')
+
+    parser.add_argument('--norm', type=str, default='standard', metavar='N',
+                        help='normalization')
+
     parser.add_argument('--model', type=str, default='lf', metavar='N',
                         help='neural network used in training')
 
-    parser.add_argument('--dataset', type=str, default='type10', metavar='N',
+    parser.add_argument('--type_num', type=int, default=10, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
@@ -69,94 +73,69 @@ def add_args(parser):
 
     parser.add_argument('--ci', type=int, default=0,
                         help='CI')
+
     return parser
 
 
-def inverse_y(csv_path, user_id):
-    file_list = os.listdir(csv_path)
-    user_id_df_dict = {}
-    user_id_co_name_dict = {}
-    for i in range(len(file_list)):
-        file = file_list[i]
-        coName, userID = file[:-4].split('_')
-        print(coName)
-        df = pd.read_csv(csv_path + file)
-        user_id_df_dict[userID] = df
-        user_id_co_name_dict[userID] = coName
+def load_partition_data_industry_load(normalization_tvt_path, args, specific_user_id):
+    file_names_list = find_files(normalization_tvt_path, suffix='.')
 
-    co_name = user_id_co_name_dict[user_id]
-    print(co_name)
-    user_df = user_id_df_dict[user_id].copy()
-    col_load = user_df.loc[:, 'load'].values.reshape(-1, 1)
-    # 提取load的最大最小值
-    scaler = MinMaxScaler()
-    scaler = scaler.fit(col_load)
-    del user_df
-    del col_load
-    del user_id_df_dict
-    return scaler
-
-
-def load_partition_data_industry_load(npy_path, batch_size, user_id):
-    dir_list = os.listdir(npy_path)
-    user_id_co_name_dict = {}
-    for i in range(len(dir_list)):
-        directory = dir_list[i]
-        c, u = directory[:].split('_')
-        # print(c)
-        user_id_co_name_dict[u] = c
-    co_name = user_id_co_name_dict[user_id]
-    logging.info("co_name = %s" % co_name)
-
-    path = npy_path + '%s_%s/' % (co_name, user_id)
-    train_x = np.load(path + 'train_x_days_365.npy')
-    train_y = np.load(path + 'train_y_days_365.npy')
-    test_x = np.load(path + 'test_x_days_365.npy')
-    test_y = np.load(path + 'test_y_days_365.npy')
+    for file_name in file_names_list:
+        co_name, user_id = file_name.split('_')
+        if user_id == specific_user_id:
+            logging.info('-------' + co_name + '--------')
+            logging.info('-------' + user_id + '--------')
+            train_x = np.load(normalization_tvt_path + file_name + 'train_x_range_%s.npy' % args.train_range)
+            train_y = np.load(normalization_tvt_path + file_name + 'train_y_range_%s.npy' % args.train_range)
+            validation_x = np.load(normalization_tvt_path + file_name + 'validation_x_range_%s.npy' % args.train_range)
+            validation_y = np.load(normalization_tvt_path + file_name + 'validation_y_range_%s.npy' % args.train_range)
+            break
 
     # 判断是否有Nan
     logging.info("Is there any nan:")
     logging.info(np.any(np.isnan(train_x)))
     logging.info(np.any(np.isnan(train_y)))
-    logging.info(np.any(np.isnan(test_x)))
-    logging.info(np.any(np.isnan(test_y)))
+    logging.info(np.any(np.isnan(validation_x)))
+    logging.info(np.any(np.isnan(validation_y)))
 
     train_x = torch.from_numpy(train_x).type(torch.Tensor)
     train_y = torch.from_numpy(train_y).type(torch.Tensor)
-    test_x = torch.from_numpy(test_x).type(torch.Tensor)
-    test_y = torch.from_numpy(test_y).type(torch.Tensor)
+    validation_x = torch.from_numpy(validation_x).type(torch.Tensor)
+    validation_y = torch.from_numpy(validation_y).type(torch.Tensor)
 
     train = torch.utils.data.TensorDataset(train_x, train_y)
-    test = torch.utils.data.TensorDataset(test_x, test_y)
+    validation = torch.utils.data.TensorDataset(validation_x, validation_y)
 
     train_loader = torch.utils.data.DataLoader(dataset=train,
-                                               batch_size=batch_size,
+                                               batch_size=args.batch_size,
                                                shuffle=False)
-    test_loader = torch.utils.data.DataLoader(dataset=test,
-                                              batch_size=batch_size,
-                                              shuffle=False)
 
-    return train_loader, test_loader
+    validation_loader = torch.utils.data.DataLoader(dataset=validation,
+                                                    batch_size=args.batch_size,
+                                                    shuffle=False)
+
+    return train_loader, validation_loader
 
 
-def load_data(args, dataset_name, user_id):
-    args_batch_size = args.batch_size
-    npy_path = "/home/gavin/PycharmProjects/Thesis/output/train_test/type10/"
-    logging.info("load_data. dataset_name = %s, user_id = %s" % (dataset_name, user_id))
-    train_loader, test_loader = load_partition_data_industry_load(npy_path, args_batch_size, user_id)
+def load_data(base_path, args, user_id):
+    normalization_tvt_path = base_path + 'data/type_%s/day_%s/%s_normalization_tvt/' % (
+    args.type_num, args.norm, args.day_range)
+    logging.info("load_data. dataset_name = type_%s, user_id = %s" % (args.type_num, user_id))
+    train_loader, validation_loader = load_partition_data_industry_load(normalization_tvt_path, args, user_id)
 
-    dataset = [train_loader, test_loader]
+    dataset = [train_loader, validation_loader]
+
     return dataset
 
 
 def create_model(args, device, model_name, output_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
-    model = None
-    if model_name == "lf" and args.dataset == "type10":
-        logging.info("lf + type10")
-        model = LoadForecastser(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
-                                n_layers=args.n_layers, out_features=args.out_features,
-                                do=args.do, device=device).to(device)
+
+    logging.info("SLSTM +", args.type_num)
+    model = SLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
+                  n_layers=args.n_layers, out_features=args.out_features,do=args.do,
+                  device=device).to(device)
+
     return model
 
 
@@ -260,7 +239,7 @@ def train(dataset, args, device, model):
             dt_string = now.strftime("%Y%m%d-%H%M%S")
             torch.save(model.state_dict(), './temp-%s.pth' % dt_string)
 
-def training():
+def training(base_path, type_num):
     logging.basicConfig()
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
@@ -282,7 +261,7 @@ def training():
 
     user_id = clients[0]
 
-    dataset = load_data(args, args.dataset, user_id)
+    dataset = load_data(base_path, args, user_id)
 
     model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
     logging.info(model)

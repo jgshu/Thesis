@@ -5,8 +5,10 @@ import os
 
 def find_files(path, suffix='.csv'):
     file_names = os.listdir(path)
-
-    return [file_name[:-4] for file_name in file_names if file_name.endswith(suffix)]
+    if suffix == '.':
+        return [file_name[:-4] for file_name in file_names]
+    else:
+        return [file_name[:-4] for file_name in file_names if file_name.endswith(suffix)]
 
 
 def encode(data, col, max_val):
