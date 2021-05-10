@@ -9,7 +9,7 @@ logger.setLevel(logging.INFO)
 
 
 def get_tensor_data(user_id, type_num):
-    npy_path = "/home/gavin/PycharmProjects/Thesis/output/train_test/type%s/" % type_num
+    npy_path = "../../../../../../Downloads/Thesis-temp/output/train_test/type%s/" % type_num
     dir_list = os.listdir(npy_path)
     user_id_co_name_dict = {}
     for i in range(len(dir_list)):

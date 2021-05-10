@@ -159,7 +159,8 @@ def create_model(args, device, model_name, output_dim):
                                 do=args.do, device=device).to(device)
     return model
 
-def test(dataset, b_use_test_dataset):
+
+def test(dataset, b_use_test_dataset, device, model):
     if b_use_test_dataset:
         test_data = dataset[1]
     else:
@@ -186,7 +187,7 @@ def test(dataset, b_use_test_dataset):
     return metrics
 
 
-def train(dataset, device, args):
+def train(dataset, args, device, model):
     train_data = dataset[0]
     model.to(device)
 
@@ -232,12 +233,12 @@ def train(dataset, device, args):
             }
 
             # train data
-            train_local_metrics = test(dataset, False)
+            train_local_metrics = test(dataset, False, device, model)
             train_metrics['num_samples'].append(copy.deepcopy(train_local_metrics['test_total']))
             train_metrics['losses'].append(copy.deepcopy(train_local_metrics['test_loss']))
 
             # test data
-            test_local_metrics = test(dataset, True)
+            test_local_metrics = test(dataset, True, device, model)
             test_metrics['num_samples'].append(copy.deepcopy(test_local_metrics['test_total']))
             test_metrics['losses'].append(copy.deepcopy(test_local_metrics['test_loss']))
 
@@ -259,33 +260,33 @@ def train(dataset, device, args):
             dt_string = now.strftime("%Y%m%d-%H%M%S")
             torch.save(model.state_dict(), './temp-%s.pth' % dt_string)
 
+def training():
+    logging.basicConfig()
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
 
-logging.basicConfig()
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+    parser = add_args(argparse.ArgumentParser(description='Thesis-type10'))
+    args = parser.parse_args()
+    logger.info(args)
+    device = torch.device("cuda:" + str(args.gpu) if torch.cuda.is_available() else "cpu")
+    logger.info(device)
 
-parser = add_args(argparse.ArgumentParser(description='Thesis-type10'))
-args = parser.parse_args()
-logger.info(args)
-device = torch.device("cuda:" + str(args.gpu) if torch.cuda.is_available() else "cpu")
-logger.info(device)
+    run = wandb.init(
+        project="thesis",
+        name="StackLSTM" + "-e" + str(args.epochs) + "-lr" + str(args.lr),
+        config=args
+    )
 
-run = wandb.init(
-    project="thesis",
-    name="StackLSTM" + "-e" + str(args.epochs) + "-lr" + str(args.lr),
-    config=args
-)
+    server = ['10']
+    clients = ['638024734', '662615482']
 
-server = ['10']
-clients = ['638024734', '662615482']
+    user_id = clients[0]
 
-user_id = clients[0]
+    dataset = load_data(args, args.dataset, user_id)
 
-dataset = load_data(args, args.dataset, user_id)
+    model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
+    logging.info(model)
 
-model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
-logging.info(model)
-
-train(dataset, device, args)
+    train(dataset, args, device, model)
 
 
