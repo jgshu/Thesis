@@ -44,7 +44,7 @@ def add_args(parser):
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
                         help='number of features')
 
-    parser.add_argument('--n_hidden', type=int, default=64, metavar='N',
+    parser.add_argument('--n_hidden', type=int, default=128, metavar='N',
                         help='number of hidden nodes')
 
     parser.add_argument('--seq_len', type=int, default=336, metavar='N',
@@ -65,8 +65,8 @@ def add_args(parser):
     parser.add_argument('--client_optimizer', type=str, default='adam',
                         help='SGD with momentum; adam')
 
-    parser.add_argument('--lr', type=float, default=0.0005, metavar='LR',
-                        help='learning rate (default: 0.0005)')
+    parser.add_argument('--lr', type=float, default=0.0001, metavar='LR',
+                        help='learning rate')
 
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
 
@@ -88,7 +88,7 @@ def add_args(parser):
 def create_model(args, device, model_name, output_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
 
-    model = BiLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
+    model = simpleLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
                   n_layers=args.n_layers, out_features=args.out_features, do=args.do,
                   device=device).to(device)
 
@@ -127,40 +127,39 @@ if __name__ == '__main__':
     type_num = 10
     server = ['10']
     clients = ['638024734', '662615482']
-    user_id = clients[0]
+    user_id = clients[1]
     parser = add_args(argparse.ArgumentParser(description='Thesis'))
     args = parser.parse_args()
     device = torch.device("cuda:" + str(args.gpu) if torch.cuda.is_available() else "cpu")
+    model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
 
     # data_preprocessing(base_path, type_num)
     # daily_load_plotting(base_path, type_num, day_range=96, norm='minmax')
     # daily_load_plotting(base_path, type_num, day_range=48, norm='minmax')
 
-    # logging.basicConfig()
-    # logger = logging.getLogger()
-    # logger.setLevel(logging.DEBUG)
+    logging.basicConfig()
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
 
-    # logger.info(args)
-    # logger.info(device)
-    #
-    # run = wandb.init(
-    #     project="thesis",
-    #     name=args.model + "-e" + str(args.epochs) + "-lr" + str(args.lr),
-    #     config=args,
-    # )
-    #
-    #
-    # now = datetime.now()
-    # dt_string = now.strftime("%Y%m%d-%H%M%S")
-    # logger.info(dt_string)
+    logger.info(args)
+    logger.info(device)
+    logging.info(model)
 
-    dt_string = '20210511-160914'
+    run = wandb.init(
+        project="thesis",
+        name=args.model + "-e" + str(args.epochs) + "-lr" + str(args.lr),
+        config=args,
+    )
+
+    now = datetime.now()
+    dt_string = now.strftime("%Y%m%d_%H%M%S")
+    logger.info(dt_string)
+
+    # dt_string = '20210511-181724'
+
     model_path = base_path + 'output/model/%s/' % dt_string
     if not os.path.exists(model_path):
         os.makedirs(model_path)
 
-    model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
-    logging.info(model)
-
-    # training(base_path, model_path, args, device, model, user_id)
-    testing(base_path, model_path, args, model, user_id)
+    training(base_path, model_path, args, device, model, user_id)
+    testing(base_path, model_path, args, dt_string, model, user_id)

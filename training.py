@@ -157,7 +157,9 @@ def train(model_path, dataset, args, device, model):
             wandb.log({"Test/Loss": test_loss, "epoch": epoch})
             logging.info(stats)
 
-            torch.save(model.state_dict(), model_path + 'temp-%s.pth' % (epoch / args.frequency_of_the_test))
+            model_num = int(epoch / args.frequency_of_the_test)
+
+            torch.save(model.state_dict(), model_path + 'model_%02d.pth' % model_num)
 
 
 def training(base_path, model_path, args, device, model, user_id):

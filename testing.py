@@ -6,10 +6,11 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 import os
 import logging
+
 from data_preprocessing.utils import find_files
-import eval
-from model import SLSTM
-from model import BiLSTM
+from test_plotting import test_plotting
+
+from eval import *
 
 def denormalization(df, norm):
     # TODO: 提取需要反归一化的特征（特征改变需要重新设置！！！）
@@ -23,7 +24,7 @@ def denormalization(df, norm):
     return scaler
 
 
-def testing(base_path, model_path, args, model, specific_user_id):
+def testing(base_path, model_path, args, dt_string, model, specific_user_id):
     # 超参数
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -63,13 +64,15 @@ def testing(base_path, model_path, args, model, specific_user_id):
         test_y_pred = scaler.inverse_transform(test_y_pred_tensor.detach().cpu().numpy())
 
         # evaluation
-        MAE = eval.calcMAE(test_y, test_y_pred)
+        MAE = calcMAE(test_y, test_y_pred)
         print("test MAE", MAE)
-        MRSE = eval.calcRMSE(test_y, test_y_pred)
+        MRSE = calcRMSE(test_y, test_y_pred)
         print("test RMSE", MRSE)
-        MAPE = eval.calcMAPE(test_y, test_y_pred)
+        MAPE = calcMAPE(test_y, test_y_pred)
         print("test MAPE", MAPE)
-        SMAPE = eval.calcSMAPE(test_y, test_y_pred)
+        SMAPE = calcSMAPE(test_y, test_y_pred)
         print("test SMAPE", SMAPE)
+
+        test_plotting(base_path, args, file_name, dt_string, test_y, test_y_pred, specific_user_id)
 
 

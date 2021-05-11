@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 
 
-def test_plotting(base_path, args, test_y, test_y_pred, specific_user_id):
+def test_plotting(base_path, args, file_name, dt_string, test_y, test_y_pred, specific_user_id):
     font = {
         'family': 'SimHei',
         'weight': 'normal',
@@ -39,23 +39,19 @@ def test_plotting(base_path, args, test_y, test_y_pred, specific_user_id):
         ax.set_xticks(np.arange(0, y1.shape[0], args.day_range))
         ax.set_xticklabels(np.arange(0, int(y1.shape[0] / args.day_range)))
 
-    test_path = base_path + 'output/img/type_%s/test/day_%s/%s_normalization/' % (args.type_num, args.day_range, args.norm)
+    test_path = base_path + 'output/img/type_%s/test/day_%s/%s_normalization/%s/' % (args.type_num, args.day_range, args.norm, dt_string)
     if not os.path.exists(test_path):
         os.makedirs(test_path)
 
-    now = datetime.now()
-    dt_string = now.strftime('%Y%m%d_%H%M%S')
-
-    plt.savefig(test_path + 'stacked_%s_range_%s_%s.jpg' % (specific_user_id, args.train_range, dt_string))
+    plt.savefig(test_path + 'stacked_%s_%s.jpg' % (specific_user_id, file_name))
     # plt.show()
 
     i = 0
     y1 = test_y[i::args.day_range, :]
     y1 = y1.reshape(y1.shape[0] * y1.shape[1])
-    print(y1.shape)
+
     y2 = test_y_pred[i::args.day_range, :]
     y2 = y2.reshape(y2.shape[0] * y2.shape[1])
-    print(y2.shape)
 
     fig, ax = plt.subplots(figsize=(50, 30))
     x = range(0, y1.shape[0])
@@ -66,5 +62,5 @@ def test_plotting(base_path, args, test_y, test_y_pred, specific_user_id):
     ax.set_ylabel('values', font=font)
     ax.set_xticks(np.arange(0, y1.shape[0], args.day_range))
     ax.set_xticklabels(np.arange(0, int(y1.shape[0] / args.day_range)))
-    plt.savefig(test_path + 'single_%s_range_%s_%s.jpg' % (specific_user_id, args.train_range, dt_string))
+    plt.savefig(test_path + 'single_%s_%s.jpg' % (specific_user_id, file_name))
     # plt.show()
