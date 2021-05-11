@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from model import SLSTM
+from model import BiLSTM
 import os
 import wandb
 import argparse
@@ -27,7 +28,7 @@ def add_args(parser):
     parser.add_argument('--norm', type=str, default='standard', metavar='N',
                         help='normalization')
 
-    parser.add_argument('--model', type=str, default='SLSTM', metavar='N',
+    parser.add_argument('--model', type=str, default='BiLSTM', metavar='N',
                         help='neural network used in training')
 
     parser.add_argument('--type_num', type=int, default=10, metavar='N',
@@ -36,7 +37,7 @@ def add_args(parser):
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
                         help='number of features')
 
-    parser.add_argument('--n_hidden', type=int, default=512, metavar='N',
+    parser.add_argument('--n_hidden', type=int, default=128, metavar='N',
                         help='number of hidden nodes')
 
     parser.add_argument('--seq_len', type=int, default=336, metavar='N',
@@ -132,7 +133,7 @@ def load_data(base_path, args, user_id):
 def create_model(args, device, model_name, output_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
 
-    model = SLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
+    model = BiLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
                   n_layers=args.n_layers, out_features=args.out_features, do=args.do,
                   device=device).to(device)
 
@@ -191,7 +192,7 @@ def train(base_path, dataset, args, device, model):
             x, labels = x.to(device), labels.to(device)
             model.zero_grad()
             log_probs = model(x)
-            loss = criterion(log_probs.view(-1), labels.view(-1))
+            loss = criterion(log_probs, labels)
             loss.backward()
             optimizer.step()
             batch_loss.append(loss.item())

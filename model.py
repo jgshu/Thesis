@@ -36,7 +36,7 @@ class SLSTM(nn.Module):
     def forward(self, x):
         batch_size, _, _ = x.shape
         self.hidden = self.init_hidden(batch_size)
-        lstm_out, self.hidden = self.lstm(
+        lstm_out, _ = self.lstm(
             x, self.hidden
         )
         x = lstm_out.contiguous().view(batch_size, -1)
@@ -70,16 +70,16 @@ class BiLSTM(nn.Module):
 
         self.linear = nn.Linear(in_features=self.hidden_dim * self.seq_len * 2, out_features=self.output_dim)
 
-
     def init_hidden(self, batch_size):
         # even with batch_first = True this remains same as docs
-        hidden_state = torch.zeros(self.num_layers, batch_size, self.hidden_dim).requires_grad_().to(self.device),
-        cell_state = torch.zeros(self.num_layers, batch_size, self.hidden_dim).requires_grad_().to(self.device)
-        self.hidden = (hidden_state, cell_state)
+        hidden_state = torch.zeros(self.num_layers*2, batch_size, self.hidden_dim).requires_grad_().to(self.device)
+        cell_state = torch.zeros(self.num_layers*2, batch_size, self.hidden_dim).requires_grad_().to(self.device)
+        return (hidden_state, cell_state)
 
     def forward(self, x):
-        batch_size, _, _ = x.size()
-        lstm_out, self.hidden = self.lstm(
+        batch_size, _, _ = x.shape
+        self.hidden = self.init_hidden(batch_size)
+        lstm_out, _ = self.lstm(
             x, self.hidden
         )
         x = lstm_out.contiguous().view(batch_size, -1)

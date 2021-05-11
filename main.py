@@ -48,4 +48,4 @@ if __name__ == '__main__':
     # daily_load_plotting(base_path, type_num, day_range=96, norm='minmax')
     # daily_load_plotting(base_path, type_num, day_range=48, norm='minmax')
     training(base_path)
-    testing(base_path)
+    # testing(base_path)
