@@ -67,7 +67,6 @@ class BiLSTM(nn.Module):
             batch_first=True,
             bidirectional=True,
         )
-
         self.linear = nn.Linear(in_features=self.hidden_dim * self.seq_len * 2, out_features=self.output_dim)
 
     def init_hidden(self, batch_size):
@@ -78,9 +77,10 @@ class BiLSTM(nn.Module):
 
     def forward(self, x):
         batch_size, _, _ = x.shape
-        self.hidden = self.init_hidden(batch_size)
+        # self.hidden = self.init_hidden(batch_size)
         lstm_out, _ = self.lstm(
-            x, self.hidden
+            x,
+            # self.hidden
         )
         x = lstm_out.contiguous().view(batch_size, -1)
         return self.linear(x)

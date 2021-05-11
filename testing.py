@@ -23,7 +23,7 @@ def denormalization(df, norm):
     return scaler
 
 
-def testing(base_path, args, specific_user_id):
+def testing(base_path, model_path, args, model, specific_user_id):
     # 超参数
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -47,32 +47,29 @@ def testing(base_path, args, specific_user_id):
 
     test_x = np.load(normalization_tvt_path + file_name + '/test_x_range_%s.npy' % args.train_range)
     test_y = np.load(normalization_tvt_path + file_name + '/test_y_range_%s.npy' % args.train_range)
-    test_x = torch.from_numpy(test_x).type(torch.Tensor)
-    test_y = torch.from_numpy(test_y).type(torch.Tensor)
-
-    model = BiLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
-                  n_layers=args.n_layers, out_features=args.out_features, do=args.do,
-                  device=device).to(device)
-    model_path = base_path + 'output/model/'
-    model.load_state_dict(torch.load(model_path + 'temp-20210511-135814.pth'))
-    model.eval()
-
-    # 模型用于测试集
-    test_x = test_x.to(device)
-    test_y_pred = model(test_x).to(device)
-
     test_y = scaler.inverse_transform(test_y)
-    # print(test_y.shape)
-    test_y_pred = scaler.inverse_transform(test_y_pred.detach().cpu().numpy())
-    # print(test_y_pred.shape)
 
-    # evaluation
-    MAE = eval.calcMAE(test_y[:, 0], test_y_pred[:, 0])
-    print("test MAE", MAE)
-    MRSE = eval.calcRMSE(test_y[:, 0], test_y_pred[:, 0])
-    print("test RMSE", MRSE)
-    MAPE = eval.calcMAPE(test_y[:, 0], test_y_pred[:, 0])
-    print("test MAPE", MAPE)
-    SMAPE = eval.calcSMAPE(test_y[:, 0], test_y_pred[:, 0])
-    print("test SMAPE", SMAPE)
+    file_names_list = find_files(model_path, suffix='.pth')
+    for file_name in file_names_list:
+        print('-------%s-------' % file_name)
+        model.load_state_dict(torch.load(model_path + file_name + '.pth'))
+        model.eval()
+
+        # 模型用于测试集
+        test_x_tensor = torch.from_numpy(test_x).type(torch.Tensor)
+        test_x_tensor = test_x_tensor.to(device)
+        test_y_pred_tensor = model(test_x_tensor).to(device)
+
+        test_y_pred = scaler.inverse_transform(test_y_pred_tensor.detach().cpu().numpy())
+
+        # evaluation
+        MAE = eval.calcMAE(test_y, test_y_pred)
+        print("test MAE", MAE)
+        MRSE = eval.calcRMSE(test_y, test_y_pred)
+        print("test RMSE", MRSE)
+        MAPE = eval.calcMAPE(test_y, test_y_pred)
+        print("test MAPE", MAPE)
+        SMAPE = eval.calcSMAPE(test_y, test_y_pred)
+        print("test SMAPE", SMAPE)
+
 

@@ -2,81 +2,12 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
-from model import SLSTM
-from model import BiLSTM
 import os
 import wandb
 import argparse
 import copy
 import logging
-from datetime import datetime
 from data_preprocessing.utils import find_files
-from testing import testing
-
-
-def add_args(parser):
-    """
-    parser : argparse.ArgumentParser
-    return a parser added with args required by fit
-    """
-    # Training settings
-    parser.add_argument('--day_range', type=int, default=48, metavar='N',
-                        help='day_range')
-
-    parser.add_argument('--train_range', type=int, default=426, metavar='N',
-                        help='day_range')
-
-    parser.add_argument('--norm', type=str, default='standard', metavar='N',
-                        help='normalization')
-
-    parser.add_argument('--model', type=str, default='BiLSTM', metavar='N',
-                        help='neural network used in training')
-
-    parser.add_argument('--type_num', type=int, default=10, metavar='N',
-                        help='dataset used for training')
-
-    parser.add_argument('--n_features', type=int, default=27, metavar='N',
-                        help='number of features')
-
-    parser.add_argument('--n_hidden', type=int, default=128, metavar='N',
-                        help='number of hidden nodes')
-
-    parser.add_argument('--seq_len', type=int, default=336, metavar='N',
-                        help='sequence length')
-
-    parser.add_argument('--n_layers', type=int, default=2, metavar='N',
-                        help='number of layers')
-
-    parser.add_argument('--out_features', type=int, default=48, metavar='N',
-                        help='number of out features')
-
-    parser.add_argument('--do', type=float, default=0.2, metavar='N',
-                        help='drop out rate')
-
-    parser.add_argument('--batch_size', type=int, default=64, metavar='N',
-                        help='input batch size for training (default: 64)')
-
-    parser.add_argument('--client_optimizer', type=str, default='adam',
-                        help='SGD with momentum; adam')
-
-    parser.add_argument('--lr', type=float, default=0.0005, metavar='LR',
-                        help='learning rate (default: 0.0005)')
-
-    parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
-
-    parser.add_argument('--epochs', type=int, default=150, metavar='EP',
-                        help='how many epochs will be trained locally')
-
-    parser.add_argument('--frequency_of_the_test', type=int, default=10,
-                        help='the frequency of the test')
-
-    parser.add_argument('--gpu', type=int, default=0,
-                        help='gpu')
-
-    parser.add_argument('--ci', type=int, default=0,
-                        help='CI')
-
-    return parser
 
 
 def load_partition_data_industry_load(normalization_tvt_path, args, specific_user_id):
@@ -131,16 +62,6 @@ def load_data(base_path, args, user_id):
     return dataset
 
 
-def create_model(args, device, model_name, output_dim):
-    logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
-
-    model = BiLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
-                  n_layers=args.n_layers, out_features=args.out_features, do=args.do,
-                  device=device).to(device)
-
-    return model
-
-
 def test(dataset, b_use_test_dataset, device, model):
     if b_use_test_dataset:
         test_data = dataset[1]
@@ -168,7 +89,7 @@ def test(dataset, b_use_test_dataset, device, model):
     return metrics
 
 
-def train(base_path, dataset, args, device, model):
+def train(model_path, dataset, args, device, model):
     train_data = dataset[0]
     model.to(device)
 
@@ -236,42 +157,10 @@ def train(base_path, dataset, args, device, model):
             wandb.log({"Test/Loss": test_loss, "epoch": epoch})
             logging.info(stats)
 
-            now = datetime.now()
-            dt_string = now.strftime("%Y%m%d-%H%M%S")
+            torch.save(model.state_dict(), model_path + 'temp-%s.pth' % (epoch / args.frequency_of_the_test))
 
-            model_path = base_path + 'output/model/'
-            if not os.path.exists(model_path):
-                os.makedirs(model_path)
-            torch.save(model.state_dict(), model_path + 'temp-%s.pth' % dt_string)
 
-def training(base_path):
-    logging.basicConfig()
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+def training(base_path, model_path, args, device, model, user_id):
+    dataset = load_data(base_path, args, user_id)
 
-    parser = add_args(argparse.ArgumentParser(description='Thesis-type10'))
-    args = parser.parse_args()
-    logger.info(args)
-    device = torch.device("cuda:" + str(args.gpu) if torch.cuda.is_available() else "cpu")
-    logger.info(device)
-
-    # run = wandb.init(
-    #     project="thesis",
-    #     name="StackLSTM" + "-e" + str(args.epochs) + "-lr" + str(args.lr),
-    #     config=args
-    # )
-
-    server = ['10']
-    clients = ['638024734', '662615482']
-
-    user_id = clients[0]
-
-    # dataset = load_data(base_path, args, user_id)
-    #
-    # model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
-    # logging.info(model)
-    #
-    # train(base_path, dataset, args, device, model)
-
-    testing(base_path, args, user_id)
-
+    train(model_path, dataset, args, device, model)
