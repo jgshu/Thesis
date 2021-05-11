@@ -8,12 +8,13 @@ import os
 import logging
 from data_preprocessing.utils import find_files
 import eval
-
+from model import SLSTM
+from model import BiLSTM
 
 def denormalization(df, norm):
     # TODO: 提取需要反归一化的特征（特征改变需要重新设置！！！）
     features = df.columns.values[-1]
-    scaler_df = df.loc[:, features]
+    scaler_df = df.loc[:, ['load']]
     scaler = MinMaxScaler()
     if norm is 'standard':
         scaler = StandardScaler()
@@ -44,12 +45,16 @@ def testing(base_path, args, specific_user_id):
     normalization_tvt_path = base_path + 'data/type_%s/day_%s/%s_normalization_tvt/' % (
         args.type_num, args.day_range, args.norm)
 
-    test_x = np.load(normalization_tvt_path + file_name + 'test_x_range_%s.npy' % args.train_range)
-    test_y = np.load(normalization_tvt_path + file_name + 'test_y_range_%s.npy' % args.train_range)
+    test_x = np.load(normalization_tvt_path + file_name + '/test_x_range_%s.npy' % args.train_range)
+    test_y = np.load(normalization_tvt_path + file_name + '/test_y_range_%s.npy' % args.train_range)
     test_x = torch.from_numpy(test_x).type(torch.Tensor)
     test_y = torch.from_numpy(test_y).type(torch.Tensor)
 
-    model = torch.load(base_path + 'models/model.pkl')
+    model = BiLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
+                  n_layers=args.n_layers, out_features=args.out_features, do=args.do,
+                  device=device).to(device)
+    model_path = base_path + 'output/model/'
+    model.load_state_dict(torch.load(model_path + 'temp-20210511-135814.pth'))
     model.eval()
 
     # 模型用于测试集

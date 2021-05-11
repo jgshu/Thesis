@@ -1,0 +1,1 @@
+RuntimeError: Expected hidden[0] size (4, 64, 128), got [2, 64, 128]

@@ -1,0 +1,1 @@
+AttributeError: 'BiLSTM' object has no attribute 'hidden'

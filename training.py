@@ -11,6 +11,7 @@ import copy
 import logging
 from datetime import datetime
 from data_preprocessing.utils import find_files
+from testing import testing
 
 
 def add_args(parser):
@@ -254,22 +255,23 @@ def training(base_path):
     device = torch.device("cuda:" + str(args.gpu) if torch.cuda.is_available() else "cpu")
     logger.info(device)
 
-    run = wandb.init(
-        project="thesis",
-        name="StackLSTM" + "-e" + str(args.epochs) + "-lr" + str(args.lr),
-        config=args
-    )
+    # run = wandb.init(
+    #     project="thesis",
+    #     name="StackLSTM" + "-e" + str(args.epochs) + "-lr" + str(args.lr),
+    #     config=args
+    # )
 
     server = ['10']
     clients = ['638024734', '662615482']
 
     user_id = clients[0]
 
-    dataset = load_data(base_path, args, user_id)
+    # dataset = load_data(base_path, args, user_id)
+    #
+    # model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
+    # logging.info(model)
+    #
+    # train(base_path, dataset, args, device, model)
 
-    model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
-    logging.info(model)
-
-    train(base_path, dataset, args, device, model)
-
+    testing(base_path, args, user_id)
 

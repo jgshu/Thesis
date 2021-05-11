@@ -1,0 +1,24 @@
+{
+    "os": "Linux-5.4.0-73-generic-x86_64-with-debian-buster-sid",
+    "python": "3.7.4",
+    "heartbeatAt": "2021-05-11T04:47:50.862843",
+    "startedAt": "2021-05-11T04:47:49.531967",
+    "docker": null,
+    "gpu": "TITAN Xp",
+    "gpu_count": 1,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/gavin/Documents/GitHub/Thesis/main.py",
+    "codePath": "main.py",
+    "git": {
+        "remote": "https://github.com/WangKa-tse/Thesis.git",
+        "commit": "3e04a01e04e3d78bd78af07e5febe4301688f05d"
+    },
+    "email": "gavinv0701@gmail.com",
+    "root": "/home/gavin/Documents/GitHub/Thesis",
+    "host": "106",
+    "username": "gavin",
+    "executable": "/home/gavin/miniconda/envs/fedml/bin/python"
+}

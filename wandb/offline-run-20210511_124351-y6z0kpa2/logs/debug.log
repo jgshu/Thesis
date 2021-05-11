@@ -1,0 +1,25 @@
+2021-05-11 12:43:51,562 INFO    MainThread:17155 [wandb_setup.py:_flush():69] setting env: {}
+2021-05-11 12:43:51,563 INFO    MainThread:17155 [wandb_init.py:_log_setup():336] Logging user logs to /home/gavin/Documents/GitHub/Thesis/wandb/offline-run-20210511_124351-y6z0kpa2/logs/debug.log
+2021-05-11 12:43:51,563 INFO    MainThread:17155 [wandb_init.py:_log_setup():337] Logging internal logs to /home/gavin/Documents/GitHub/Thesis/wandb/offline-run-20210511_124351-y6z0kpa2/logs/debug-internal.log
+2021-05-11 12:43:51,563 INFO    MainThread:17155 [wandb_init.py:init():369] calling init triggers
+2021-05-11 12:43:51,563 INFO    MainThread:17155 [wandb_init.py:init():376] wandb.init called with sweep_config: {}
+config: {'day_range': 48, 'train_range': 426, 'norm': 'standard', 'model': 'BiLSTM', 'type_num': 10, 'n_features': 27, 'n_hidden': 128, 'seq_len': 336, 'n_layers': 2, 'out_features': 48, 'do': 0.2, 'batch_size': 64, 'client_optimizer': 'adam', 'lr': 0.0005, 'wd': 0.001, 'epochs': 150, 'frequency_of_the_test': 10, 'gpu': 0, 'ci': 0}
+2021-05-11 12:43:51,563 INFO    MainThread:17155 [wandb_init.py:init():418] starting backend
+2021-05-11 12:43:51,563 INFO    MainThread:17155 [backend.py:_multiprocessing_setup():71] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2021-05-11 12:43:51,580 INFO    MainThread:17155 [backend.py:ensure_launched():123] starting backend process...
+2021-05-11 12:43:51,939 INFO    MainThread:17155 [backend.py:ensure_launched():128] started backend process with pid: 17184
+2021-05-11 12:43:51,940 INFO    MainThread:17155 [wandb_init.py:init():423] backend started and connected
+2021-05-11 12:43:51,942 INFO    MainThread:17155 [wandb_init.py:init():465] updated telemetry
+2021-05-11 12:43:51,943 INFO    MainThread:17155 [wandb_init.py:init():522] starting run threads in backend
+2021-05-11 12:43:54,052 INFO    MainThread:17155 [wandb_run.py:_console_start():1524] atexit reg
+2021-05-11 12:43:54,053 INFO    MainThread:17155 [wandb_run.py:_redirect():1371] redirect: SettingsConsole.REDIRECT
+2021-05-11 12:43:54,053 INFO    MainThread:17155 [wandb_run.py:_redirect():1376] Redirecting console.
+2021-05-11 12:43:54,054 INFO    MainThread:17155 [wandb_run.py:_redirect():1438] Redirects installed.
+2021-05-11 12:43:54,055 INFO    MainThread:17155 [wandb_init.py:init():546] run started, returning control to user process
+2021-05-11 12:45:33,552 INFO    MainThread:17155 [wandb_run.py:_atexit_cleanup():1494] got exitcode: 0
+2021-05-11 12:45:33,554 INFO    MainThread:17155 [wandb_run.py:_restore():1466] restore
+2021-05-11 12:45:35,584 INFO    MainThread:17155 [wandb_run.py:_wait_for_finish():1616] got exit ret: 
+2021-05-11 12:45:35,686 INFO    MainThread:17155 [wandb_run.py:_wait_for_finish():1616] got exit ret: done: true
+exit_result {
+}
+
