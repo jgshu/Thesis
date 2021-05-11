@@ -50,8 +50,8 @@ def testing(base_path, model_path, args, dt_string, model, specific_user_id):
     test_y = np.load(normalization_tvt_path + file_name + '/test_y_range_%s.npy' % args.train_range)
     test_y = scaler.inverse_transform(test_y)
 
-    file_names_list = find_files(model_path, suffix='.pth')
-    for file_name in file_names_list:
+    for i in range(15):
+        file_name = 'model_%02d' % i
         print('-------%s-------' % file_name)
         model.load_state_dict(torch.load(model_path + file_name + '.pth'))
         model.eval()

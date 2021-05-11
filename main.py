@@ -88,7 +88,7 @@ def add_args(parser):
 def create_model(args, device, model_name, output_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
 
-    model = simpleLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
+    model = BiLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
                   n_layers=args.n_layers, out_features=args.out_features, do=args.do,
                   device=device).to(device)
 
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     dt_string = now.strftime("%Y%m%d_%H%M%S")
     logger.info(dt_string)
 
-    # dt_string = '20210511-181724'
+    # dt_string = '20210511_193252'
 
     model_path = base_path + 'output/model/%s/' % dt_string
     if not os.path.exists(model_path):
