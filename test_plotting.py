@@ -9,7 +9,7 @@ def test_plotting(base_path, args, file_name, dt_string, test_y, test_y_pred, sp
     font = {
         'family': 'SimHei',
         'weight': 'normal',
-        'size': 20,
+        # 'size': 20,
     }
     CB91_Blue = '#2CBDFE'
     CB91_Green = '#47DBCD'

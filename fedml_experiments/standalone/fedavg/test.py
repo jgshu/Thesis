@@ -223,7 +223,7 @@ if __name__ == "__main__":
     logging.info(model)
 
     fedavgAPI = FedAvgAPI(dataset, device, args, model_trainer)
-    fedavgAPI.train()
+    fedavgAPI.trin()
 
     now = datetime.now()
     dt_string = now.strftime("%Y%m%d-%H%M%S")

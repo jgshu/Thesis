@@ -6,7 +6,7 @@ from data_preprocessing.utils import find_files
 plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
 plt.rcParams['axes.unicode_minus']=False #用来正常显示负号
 
-def daily_load_plotting(base_path, type_num, day_range=96, norm='minmax'):
+def daily_load_plotting(base_path, type_num, start=1, end=40, week_range=7, day_range=96, norm='minmax'):
     # 导入数据
     type_num_normalization_path = base_path + 'data/type_%s/day_%s/%s_normalization/' % (type_num, day_range, norm)
     daily_load_path = base_path + 'output/img/type_%s/daily_load/day_%s/%s_normalization/' % (type_num, day_range, norm)
@@ -33,13 +33,14 @@ def daily_load_plotting(base_path, type_num, day_range=96, norm='minmax'):
     font = {
         'family': 'SimHei',
         'weight': 'normal',
-        'size': 20,
+        # 'size': 20,
        }
 
-    start = 1
-    end = 40
-    for day in range(start, end + 1):
-        print('day:', day)
+    for k in range(start, end + 1):
+        if week_range == 7:
+            print('week:', k)
+        elif week_range == 1:
+            print('day:', k)
         i = 1
         fig = plt.figure()
         fig.set_size_inches(60, 80, forward=True)
@@ -50,17 +51,21 @@ def daily_load_plotting(base_path, type_num, day_range=96, norm='minmax'):
 
             ax = plt.subplot(len(user_id_list), 1, i)
             y = data.values
-            y = y[day_range * 7 * (day - 1): day_range * 7 * day]
+            y = y[day_range * week_range * (k - 1): day_range * week_range * k]
             x = range(0, len(y))
             ax.plot(x, y)
             plt.xticks(font=font)
             plt.yticks(font=font)
             ax.set_ylabel('%s' % co_name, font=font)
             ax.set_xticks(np.arange(0, len(y), day_range))
-            ax.set_xticklabels(np.arange(0, 7))
+            ax.set_xticklabels(np.arange(0, int(len(y) / day_range)))
             i = i + 1
 
         if not os.path.exists(daily_load_path):
             os.makedirs(daily_load_path)
-        plt.savefig(daily_load_path + 'week_%02d_from_%s_to_%s.jpg' % (day, start, end))
+
+        if week_range == 7:
+            plt.savefig(daily_load_path + 'week_%02d_from_%s_to_%s.jpg' % (k, start, end))
+        elif week_range == 1:
+            plt.savefig(daily_load_path + 'day_%02d_from_%s_to_%s.jpg' % (k, start, end))
         # plt.show()

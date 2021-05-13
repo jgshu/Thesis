@@ -249,7 +249,14 @@ def feature_engineering(base_path, type_num, sum_flag=False, sum_user_id_list=[]
 
         for file_name in file_names_list:
             co_name, user_id = file_name.split('_')
-            if user_id in sum_user_id_list:
+            if len(sum_user_id_list) > 0:
+                if user_id in sum_user_id_list:
+                    df = pd.read_csv(type_num_original_path + file_name + '.csv')
+                    if sum_load_df.empty:
+                        sum_load_df = df['load']
+                    else:
+                        sum_load_df = sum_load_df + df['load']
+            else:
                 df = pd.read_csv(type_num_original_path + file_name + '.csv')
                 if sum_load_df.empty:
                     sum_load_df = df['load']

@@ -15,6 +15,7 @@ from data_preprocessing.feature_engineering import feature_engineering
 from data_preprocessing.anomaly_detection import anomaly_detection
 from data_preprocessing.data_normalization import data_normalization
 from data_preprocessing.train_validation_test_split import train_validation_test_split
+from data_preprocessing.utils import find_files
 from daily_load_plotting import daily_load_plotting
 from training import training
 from testing import testing
@@ -35,7 +36,7 @@ def add_args(parser):
     parser.add_argument('--norm', type=str, default='standard', metavar='N',
                         help='normalization')
 
-    parser.add_argument('--model', type=str, default='BiLSTM', metavar='N',
+    parser.add_argument('--model', type=str, default='simpleLSTM', metavar='N',
                         help='neural network used in training')
 
     parser.add_argument('--type_num', type=int, default=10, metavar='N',
@@ -44,7 +45,7 @@ def add_args(parser):
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
                         help='number of features')
 
-    parser.add_argument('--n_hidden', type=int, default=128, metavar='N',
+    parser.add_argument('--n_hidden', type=int, default=512, metavar='N',
                         help='number of hidden nodes')
 
     parser.add_argument('--seq_len', type=int, default=336, metavar='N',
@@ -70,7 +71,7 @@ def add_args(parser):
 
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
 
-    parser.add_argument('--epochs', type=int, default=150, metavar='EP',
+    parser.add_argument('--epochs', type=int, default=200, metavar='EP',
                         help='how many epochs will be trained locally')
 
     parser.add_argument('--frequency_of_the_test', type=int, default=10,
@@ -88,7 +89,13 @@ def add_args(parser):
 def create_model(args, device, model_name, output_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
 
-    model = BiLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
+    model = None
+    if args.model == 'BiLSTM':
+        model = BiLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
+                  n_layers=args.n_layers, out_features=args.out_features, do=args.do,
+                  device=device).to(device)
+    elif args.model == 'simpleLSTM':
+        model = simpleLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
                   n_layers=args.n_layers, out_features=args.out_features, do=args.do,
                   device=device).to(device)
 
@@ -96,29 +103,32 @@ def create_model(args, device, model_name, output_dim):
 
 
 def before_normalization(base_path, type_num):
-    txt_to_csv(base_path)
-    split_data_by_trade_type(base_path)
-    feature_engineering(base_path, type_num)
-    sum_user_id_list = ['638024734', '662615482']
-    feature_engineering(base_path, type_num, sum_flag=True, sum_user_id_list=sum_user_id_list)
-    anomaly_detection(base_path, type_num)
+    # txt_to_csv(base_path)
+    # split_data_by_trade_type(base_path)
+    # feature_engineering(base_path, type_num)
+    # sum_user_id_list = ['638024734', '662615482']
+    feature_engineering(base_path, type_num, sum_flag=True)
+    # anomaly_detection(base_path, type_num)
     anomaly_detection(base_path, type_num, sum_flag=True)
+
 
 def normalization_and_split(base_path, type_num, day_range=96, norm='minmax'):
     # data_normalization(base_path, type_num, day_range=day_range, norm=norm)
-    # data_normalization(base_path, type_num, day_range=day_range, norm=norm, sum_flag=True)
+    data_normalization(base_path, type_num, day_range=day_range, norm=norm, sum_flag=True)
     n_predictions = day_range * 7
     n_next = day_range
-    train_validation_test_split(base_path, type_num, n_predictions, n_next, 426, 122, 61, day_range=day_range, norm=norm, sum_flag=False)
-    train_validation_test_split(base_path, type_num, n_predictions, n_next, 426, 122, 61, day_range=day_range, norm=norm, sum_flag=True)
+    # train_validation_test_split(base_path, type_num, n_predictions, n_next, 426, 122, 61, day_range=day_range, norm=norm, sum_flag=False)
+    # train_validation_test_split(base_path, type_num, n_predictions, n_next, 426, 122, 61, day_range=day_range, norm=norm, sum_flag=True)
+    train_validation_test_split(base_path, type_num, n_predictions, n_next, 512, 146, 73, day_range=day_range, norm=norm, sum_flag=False)
+    train_validation_test_split(base_path, type_num, n_predictions, n_next, 512, 146, 73, day_range=day_range, norm=norm, sum_flag=True)
 
 
 def data_preprocessing(base_path, type_num):
     # before_normalization(base_path, type_num)
-    normalization_and_split(base_path, type_num, day_range=24, norm='minmax')
+    # normalization_and_split(base_path, type_num, day_range=24, norm='minmax')
     # normalization_and_split(base_path, type_num, day_range=24, norm='standard')
     # normalization_and_split(base_path, type_num, day_range=48, norm='minmax')
-    # normalization_and_split(base_path, type_num, day_range=48, norm='standard')
+    normalization_and_split(base_path, type_num, day_range=48, norm='standard')
     # normalization_and_split(base_path, type_num, day_range=96, norm='minmax')
     # normalization_and_split(base_path, type_num, day_range=96, norm='standard')
 
@@ -127,16 +137,20 @@ if __name__ == '__main__':
     type_num = 10
     server = ['10']
     clients = ['638024734', '662615482']
-    user_id = clients[1]
+    user_id = server[0]
     parser = add_args(argparse.ArgumentParser(description='Thesis'))
     args = parser.parse_args()
     device = torch.device("cuda:" + str(args.gpu) if torch.cuda.is_available() else "cpu")
     model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
 
     # data_preprocessing(base_path, type_num)
-    # daily_load_plotting(base_path, type_num, day_range=96, norm='minmax')
-    # daily_load_plotting(base_path, type_num, day_range=48, norm='minmax')
-
+    # daily_load_plotting(base_path, type_num, day_range=96, norm='standard')
+    # daily_load_plotting(base_path, type_num, day_range=48, norm='standard')
+    # daily_load_plotting(base_path, type_num, start=426+122+8, end=426+122+61, week_range=1, day_range=48, norm='standard')
+    # daily_load_plotting(base_path, type_num, start=512+146+8, end=512+146+73, week_range=1, day_range=48, norm='standard')
+    # daily_load_plotting(base_path, type_num, start=1, end=40, week_range=1, day_range=48, norm='standard')
+    # daily_load_plotting(base_path, type_num, day_range=24, norm='standard')
+    #
     logging.basicConfig()
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
@@ -155,7 +169,7 @@ if __name__ == '__main__':
     dt_string = now.strftime("%Y%m%d_%H%M%S")
     logger.info(dt_string)
 
-    # dt_string = '20210511_193252'
+    # dt_string = '20210511_195848'
 
     model_path = base_path + 'output/model/%s/' % dt_string
     if not os.path.exists(model_path):
