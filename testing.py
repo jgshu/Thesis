@@ -54,34 +54,36 @@ def testing(base_path, model_path, args, dt_string, model, specific_user_id):
 
     test_y = scaler.inverse_transform(test_y)
 
-    for i in range(15):
+    for i in range(int(args.epochs / args.frequency_of_the_test)):
+        try:
+            file_name = 'model_%02d' % i
+            print('-------%s-------' % file_name)
+            model.load_state_dict(torch.load(model_path + file_name + '.pth'))
+            model.eval()
 
-        file_name = 'model_%02d' % i
-        print('-------%s-------' % file_name)
-        model.load_state_dict(torch.load(model_path + file_name + '.pth'))
-        model.eval()
+            # 模型用于测试集
+            test_x_tensor = torch.from_numpy(test_x).type(torch.Tensor)
+            test_x_tensor = test_x_tensor.to(device)
+            test_y_pred_tensor = model(test_x_tensor).to(device)
 
-        # 模型用于测试集
-        test_x_tensor = torch.from_numpy(test_x).type(torch.Tensor)
-        test_x_tensor = test_x_tensor.to(device)
-        test_y_pred_tensor = model(test_x_tensor).to(device)
+            test_y_pred = scaler.inverse_transform(test_y_pred_tensor.detach().cpu().numpy())
 
-        test_y_pred = scaler.inverse_transform(test_y_pred_tensor.detach().cpu().numpy())
+            del test_x_tensor
+            del test_y_pred_tensor
 
-        del test_x_tensor
-        del test_y_pred_tensor
+            # evaluation
+            MAE = calcMAE(test_y, test_y_pred)
+            print("test MAE", MAE)
+            MRSE = calcRMSE(test_y, test_y_pred)
+            print("test RMSE", MRSE)
+            MAPE = calcMAPE(test_y, test_y_pred)
+            print("test MAPE", MAPE)
+            SMAPE = calcSMAPE(test_y, test_y_pred)
+            print("test SMAPE", SMAPE)
 
-        # evaluation
-        MAE = calcMAE(test_y, test_y_pred)
-        print("test MAE", MAE)
-        MRSE = calcRMSE(test_y, test_y_pred)
-        print("test RMSE", MRSE)
-        MAPE = calcMAPE(test_y, test_y_pred)
-        print("test MAPE", MAPE)
-        SMAPE = calcSMAPE(test_y, test_y_pred)
-        print("test SMAPE", SMAPE)
-
-        test_plotting(base_path, args, file_name, dt_string, test_y, test_y_pred, specific_user_id)
+            test_plotting(base_path, args, file_name, dt_string, test_y, test_y_pred, specific_user_id)
+        except Exception as e:
+            print(e)
 
 
 

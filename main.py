@@ -45,7 +45,7 @@ def add_args(parser):
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
                         help='number of features')
 
-    parser.add_argument('--n_hidden', type=int, default=64, metavar='N',
+    parser.add_argument('--n_hidden', type=int, default=128, metavar='N',
                         help='number of hidden nodes')
 
     parser.add_argument('--seq_len', type=int, default=336, metavar='N',
@@ -71,7 +71,7 @@ def add_args(parser):
 
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
 
-    parser.add_argument('--epochs', type=int, default=200, metavar='EP',
+    parser.add_argument('--epochs', type=int, default=150, metavar='EP',
                         help='how many epochs will be trained locally')
 
     parser.add_argument('--frequency_of_the_test', type=int, default=10,
@@ -176,7 +176,7 @@ if __name__ == '__main__':
     dt_string = now.strftime("%Y%m%d_%H%M%S")
     logger.info(dt_string)
 
-    # dt_string = '20210514_231048'
+    # dt_string = '20210515_173914'
 
     model_path = base_path + 'output/model/%s/' % dt_string
     if not os.path.exists(model_path):
