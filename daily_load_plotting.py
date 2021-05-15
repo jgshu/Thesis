@@ -33,14 +33,20 @@ def daily_load_plotting(base_path, type_num, start=1, end=40, week_range=7, day_
     font = {
         'family': 'SimHei',
         'weight': 'normal',
-        # 'size': 20,
+        'size': 10,
        }
 
-    for k in range(start, end + 1):
+    left = 0
+    if week_range == 7:
+        right = int((end - start) / 7) + 1
+    elif week_range == 1:
+        right = end - start + 1
+
+    for k in range(left, right):
         if week_range == 7:
-            print('week:', k)
+            print('week:', k - left + 1)
         elif week_range == 1:
-            print('day:', k)
+            print('day:', k - left + 1)
         i = 1
         fig = plt.figure()
         fig.set_size_inches(60, 80, forward=True)
@@ -51,7 +57,8 @@ def daily_load_plotting(base_path, type_num, start=1, end=40, week_range=7, day_
 
             ax = plt.subplot(len(user_id_list), 1, i)
             y = data.values
-            y = y[day_range * week_range * (k - 1): day_range * week_range * k]
+            y = y[start - 1 + day_range * week_range * k: start - 1 + day_range * week_range * (k + 1)]
+            # y = y[day_range * week_range * k: day_range * week_range * (k + 1)]
             x = range(0, len(y))
             ax.plot(x, y)
             plt.xticks(font=font)
@@ -65,7 +72,7 @@ def daily_load_plotting(base_path, type_num, start=1, end=40, week_range=7, day_
             os.makedirs(daily_load_path)
 
         if week_range == 7:
-            plt.savefig(daily_load_path + 'week_%02d_from_%s_to_%s.jpg' % (k, start, end))
+            plt.savefig(daily_load_path + 'from_%s_to_%s_week_%02d.jpg' % (start, end, k - left + 1))
         elif week_range == 1:
-            plt.savefig(daily_load_path + 'day_%02d_from_%s_to_%s.jpg' % (k, start, end))
+            plt.savefig(daily_load_path + 'from_%s_to_%s_day_%02d.jpg' % (start, end, k - left + 1))
         # plt.show()

@@ -30,22 +30,22 @@ def add_args(parser):
     parser.add_argument('--day_range', type=int, default=48, metavar='N',
                         help='day_range')
 
-    parser.add_argument('--train_range', type=int, default=426, metavar='N',
+    parser.add_argument('--train_range', type=int, default=512, metavar='N',
                         help='day_range')
 
     parser.add_argument('--norm', type=str, default='standard', metavar='N',
                         help='normalization')
 
-    parser.add_argument('--model', type=str, default='simpleLSTM', metavar='N',
+    parser.add_argument('--model', type=str, default='BiLSTM', metavar='N',
                         help='neural network used in training')
 
-    parser.add_argument('--type_num', type=int, default=10, metavar='N',
+    parser.add_argument('--type_num', type=int, default=22, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
                         help='number of features')
 
-    parser.add_argument('--n_hidden', type=int, default=512, metavar='N',
+    parser.add_argument('--n_hidden', type=int, default=64, metavar='N',
                         help='number of hidden nodes')
 
     parser.add_argument('--seq_len', type=int, default=336, metavar='N',
@@ -105,16 +105,16 @@ def create_model(args, device, model_name, output_dim):
 def before_normalization(base_path, type_num):
     # txt_to_csv(base_path)
     # split_data_by_trade_type(base_path)
-    # feature_engineering(base_path, type_num)
+    feature_engineering(base_path, type_num)
     # sum_user_id_list = ['638024734', '662615482']
     feature_engineering(base_path, type_num, sum_flag=True)
-    # anomaly_detection(base_path, type_num)
+    anomaly_detection(base_path, type_num)
     anomaly_detection(base_path, type_num, sum_flag=True)
 
 
 def normalization_and_split(base_path, type_num, day_range=96, norm='minmax'):
     # data_normalization(base_path, type_num, day_range=day_range, norm=norm)
-    data_normalization(base_path, type_num, day_range=day_range, norm=norm, sum_flag=True)
+    # data_normalization(base_path, type_num, day_range=day_range, norm=norm, sum_flag=True)
     n_predictions = day_range * 7
     n_next = day_range
     # train_validation_test_split(base_path, type_num, n_predictions, n_next, 426, 122, 61, day_range=day_range, norm=norm, sum_flag=False)
@@ -134,22 +134,29 @@ def data_preprocessing(base_path, type_num):
 
 if __name__ == '__main__':
     base_path = '../../../Downloads/Thesis-temp/'
-    type_num = 10
-    server = ['10']
-    clients = ['638024734', '662615482']
-    user_id = server[0]
     parser = add_args(argparse.ArgumentParser(description='Thesis'))
     args = parser.parse_args()
+
+    server = [str(args.type_num)]
+    clients = ['638024734', '662615482']
+    user_id = server[0]
+
     device = torch.device("cuda:" + str(args.gpu) if torch.cuda.is_available() else "cpu")
     model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
 
-    # data_preprocessing(base_path, type_num)
-    # daily_load_plotting(base_path, type_num, day_range=96, norm='standard')
-    # daily_load_plotting(base_path, type_num, day_range=48, norm='standard')
-    # daily_load_plotting(base_path, type_num, start=426+122+8, end=426+122+61, week_range=1, day_range=48, norm='standard')
-    # daily_load_plotting(base_path, type_num, start=512+146+8, end=512+146+73, week_range=1, day_range=48, norm='standard')
-    # daily_load_plotting(base_path, type_num, start=1, end=40, week_range=1, day_range=48, norm='standard')
-    # daily_load_plotting(base_path, type_num, day_range=24, norm='standard')
+
+    # data_preprocessing(base_path, args.type_num)
+
+    # daily_load_plotting(base_path, args.type_num, start=1 , end=150, week_range=7, day_range=args.day_range, norm='standard')
+    # if args.train_range == 426:
+    #     start = 426+122+8
+    #     end = 426+122+61
+    #     week_range = 7
+    # elif args.train_range == 512:
+    #     start = 512+146+8
+    #     end = 512+146+73
+    #     week_range = 7
+    # daily_load_plotting(base_path, args.type_num, start=start , end=end, week_range=week_range, day_range=args.day_range, norm='standard')
     #
     logging.basicConfig()
     logger = logging.getLogger()
@@ -160,7 +167,7 @@ if __name__ == '__main__':
     logging.info(model)
 
     run = wandb.init(
-        project="thesis",
+        project="thesis-without-fedml",
         name=args.model + "-e" + str(args.epochs) + "-lr" + str(args.lr),
         config=args,
     )
@@ -169,7 +176,7 @@ if __name__ == '__main__':
     dt_string = now.strftime("%Y%m%d_%H%M%S")
     logger.info(dt_string)
 
-    # dt_string = '20210511_195848'
+    # dt_string = '20210514_231048'
 
     model_path = base_path + 'output/model/%s/' % dt_string
     if not os.path.exists(model_path):
@@ -177,3 +184,6 @@ if __name__ == '__main__':
 
     training(base_path, model_path, args, device, model, user_id)
     testing(base_path, model_path, args, dt_string, model, user_id)
+
+    print('----------------------')
+    print('dt_string:', dt_string)

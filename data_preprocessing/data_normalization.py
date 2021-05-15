@@ -33,7 +33,10 @@ def data_normalization(base_path, type_num, day_range=96, norm='minmax', sum_fla
         file_names_list = [sum_filename]
     else:
         print('Normalization of single file...')
-        file_names_list.remove(sum_filename)
+        try:
+            file_names_list.remove(sum_filename)
+        except:
+            pass
 
     for file_name in file_names_list:
         co_name, user_id = file_name.split('_')

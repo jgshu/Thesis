@@ -107,7 +107,10 @@ def anomaly_detection(base_path, type_num, sum_flag=False):
         file_names_list = [sum_filename]
     else:
         print('Anomaly detection of single file...')
-        file_names_list.remove(sum_filename)
+        try:
+            file_names_list.remove(sum_filename)
+        except:
+            pass
 
     for file_name in file_names_list:
         co_name, user_id = file_name.split('_')

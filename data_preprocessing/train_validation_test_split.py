@@ -15,7 +15,10 @@ def train_validation_test_split(base_path, type_num, n_predictions, n_next, trai
         file_names_list = [sum_filename]
     else:
         print('Train test split of single file...')
-        file_names_list.remove(sum_filename)
+        try:
+            file_names_list.remove(sum_filename)
+        except:
+            pass
 
     for file_name in file_names_list:
         co_name, user_id = file_name.split('_')

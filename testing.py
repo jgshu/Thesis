@@ -46,11 +46,16 @@ def testing(base_path, model_path, args, dt_string, model, specific_user_id):
     normalization_tvt_path = base_path + 'data/type_%s/day_%s/%s_normalization_tvt/' % (
         args.type_num, args.day_range, args.norm)
 
+    # test_x = np.load(normalization_tvt_path + file_name + '/validation_x_range_%s.npy' % args.train_range)
+    # test_y = np.load(normalization_tvt_path + file_name + '/validation_y_range_%s.npy' % args.train_range)
+
     test_x = np.load(normalization_tvt_path + file_name + '/test_x_range_%s.npy' % args.train_range)
     test_y = np.load(normalization_tvt_path + file_name + '/test_y_range_%s.npy' % args.train_range)
+
     test_y = scaler.inverse_transform(test_y)
 
     for i in range(15):
+
         file_name = 'model_%02d' % i
         print('-------%s-------' % file_name)
         model.load_state_dict(torch.load(model_path + file_name + '.pth'))
@@ -63,6 +68,9 @@ def testing(base_path, model_path, args, dt_string, model, specific_user_id):
 
         test_y_pred = scaler.inverse_transform(test_y_pred_tensor.detach().cpu().numpy())
 
+        del test_x_tensor
+        del test_y_pred_tensor
+
         # evaluation
         MAE = calcMAE(test_y, test_y_pred)
         print("test MAE", MAE)
@@ -74,5 +82,7 @@ def testing(base_path, model_path, args, dt_string, model, specific_user_id):
         print("test SMAPE", SMAPE)
 
         test_plotting(base_path, args, file_name, dt_string, test_y, test_y_pred, specific_user_id)
+
+
 
 
