@@ -6,37 +6,30 @@ from data_preprocessing.utils import find_files
 plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
 plt.rcParams['axes.unicode_minus']=False #用来正常显示负号
 
-def daily_load_plotting(base_path, type_num, start=1, end=40, week_range=7, day_range=96, norm='minmax'):
-    # 导入数据
-    type_num_normalization_path = base_path + 'data/type_%s/day_%s/%s_normalization/' % (type_num, day_range, norm)
-    daily_load_path = base_path + 'output/img/type_%s/daily_load/day_%s/%s_normalization/' % (type_num, day_range, norm)
-    file_names_list = find_files(type_num_normalization_path)
-    # sum_filename = 'type%s_%s' % (type_num, type_num)
-    # if sum_flag:
-    #     print('Train test split of sum file...')
-    #     file_names_list = [sum_filename]
-    # else:
-    #     print('Train test split of single file...')
-    #     file_names_list.remove(sum_filename)
+
+def get_dict(type_num_path, day_range, need_slice=False):
+    file_names_list = find_files(type_num_path)
+
     user_id_co_name_dict= {}
     user_id_df_dict = {}
     for file_name in file_names_list:
         co_name, user_id = file_name.split('_')
         # 导入行业x的数据
-        df = pd.read_csv(type_num_normalization_path + file_name + '.csv')
+        df = pd.read_csv(type_num_path + file_name + '.csv')
         df.drop(['data_date'], axis=1, inplace=True)
+        if need_slice:
+            slice_range = int(96 / day_range)
+            df = df[::slice_range]
         user_id_co_name_dict[user_id] = co_name
         user_id_df_dict[user_id] = df
 
+    return user_id_df_dict, user_id_co_name_dict
+
+
+def plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, font, start=1, end=40, week_range=7, day_range=96):
     user_id_list = list(user_id_df_dict.keys())
-
-    font = {
-        'family': 'SimHei',
-        'weight': 'normal',
-        'size': 10,
-       }
-
     left = 0
+
     if week_range == 7:
         right = int((end - start) / 7) + 1
     elif week_range == 1:
@@ -75,4 +68,39 @@ def daily_load_plotting(base_path, type_num, start=1, end=40, week_range=7, day_
             plt.savefig(daily_load_path + 'from_%s_to_%s_week_%02d.jpg' % (start, end, k - left + 1))
         elif week_range == 1:
             plt.savefig(daily_load_path + 'from_%s_to_%s_day_%02d.jpg' % (start, end, k - left + 1))
-        # plt.show()
+        plt.close(fig)
+
+
+def daily_load_plotting(base_path, type_num, start=1, end=40, week_range=7, day_range=96, norm='minmax', need_filter=False):
+    font = {
+        'family': 'SimHei',
+        'weight': 'normal',
+        # 'size': 10,
+       }
+
+    if need_filter:
+        # 导入数据
+        type_num_after_anomaly_detection_path = base_path + 'data/type_%s/after_anomaly_detection/' % (type_num)
+        user_id_df_dict, user_id_co_name_dict = get_dict(type_num_after_anomaly_detection_path, day_range)
+
+        daily_load_path = base_path + 'output/img/type_%s/daily_load/after_anomaly_detection/' % (type_num)
+        plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, font, start=start, end=end,
+                           week_range=week_range, day_range=day_range)
+    else:
+        # 导入数据
+        print('')
+        type_num_after_anomaly_detection_path = base_path + 'data/type_%s/after_anomaly_detection/' % (type_num)
+        user_id_df_dict, user_id_co_name_dict = get_dict(type_num_after_anomaly_detection_path, day_range,
+                                                         need_slice=True)
+
+        daily_load_path = base_path + 'output/img/type_%s/daily_load/day_%s/after_anomaly_detection/' % (
+        type_num, day_range)
+        plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, font, start=start, end=end,
+                           week_range=week_range, day_range=day_range)
+        # 导入数据
+        type_num_normalization_path = base_path + 'data/type_%s/day_%s/%s_normalization/' % (type_num, day_range, norm)
+        user_id_df_dict, user_id_co_name_dict = get_dict(type_num_normalization_path, day_range)
+
+        daily_load_path = base_path + 'output/img/type_%s/daily_load/day_%s/%s_normalization/' % (type_num, day_range, norm)
+        plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, font, start=start, end=end,
+                           week_range=week_range, day_range=day_range)

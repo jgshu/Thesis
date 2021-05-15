@@ -50,8 +50,8 @@ def data_normalization(base_path, type_num, day_range=96, norm='minmax', sum_fla
         df = normalization(df, norm)
 
         # 切片
-        slide_range = int(96 / day_range)
-        df = df[::slide_range]
+        slice_range = int(96 / day_range)
+        df = df[::slice_range]
 
         # 输出csv文件
         print('Saving %s - %s csv file...' % (co_name, user_id))

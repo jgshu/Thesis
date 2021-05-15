@@ -2,13 +2,14 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
+import wandb
+from datetime import datetime
 import os
 import argparse
 import logging
-import wandb
-from datetime import datetime
-from model import *
+import shutil
 
+from model import *
 from data_preprocessing.txt_to_csv import txt_to_csv
 from data_preprocessing.split_data_by_trade_type import split_data_by_trade_type
 from data_preprocessing.feature_engineering import feature_engineering
@@ -45,7 +46,7 @@ def add_args(parser):
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
                         help='number of features')
 
-    parser.add_argument('--n_hidden', type=int, default=128, metavar='N',
+    parser.add_argument('--n_hidden', type=int, default=64, metavar='N',
                         help='number of hidden nodes')
 
     parser.add_argument('--seq_len', type=int, default=336, metavar='N',
@@ -102,35 +103,70 @@ def create_model(args, device, model_name, output_dim):
     return model
 
 
-def before_normalization(base_path, type_num):
+def before_normalization(base_path, type_num, need_filter=False):
     # txt_to_csv(base_path)
     # split_data_by_trade_type(base_path)
+
+    type_num_path = base_path + 'data/type_%s/' % type_num
+    if os.path.exists(type_num_path):
+        shutil.rmtree(type_num_path)
+
     feature_engineering(base_path, type_num)
-    # sum_user_id_list = ['638024734', '662615482']
-    feature_engineering(base_path, type_num, sum_flag=True)
     anomaly_detection(base_path, type_num)
+
+    sum_user_id_list = []
+    feature_engineering(base_path, type_num, sum_flag=True, sum_user_id_list=sum_user_id_list)
     anomaly_detection(base_path, type_num, sum_flag=True)
+    if need_filter:
+        daily_load_plotting(base_path, type_num, start=1, end=150, week_range=7, day_range=96,
+                            norm='standard', need_filter=True)
 
 
-def normalization_and_split(base_path, type_num, day_range=96, norm='minmax'):
-    # data_normalization(base_path, type_num, day_range=day_range, norm=norm)
-    # data_normalization(base_path, type_num, day_range=day_range, norm=norm, sum_flag=True)
+def split(base_path, type_num, train_range=512, day_range=96, norm='minmax'):
     n_predictions = day_range * 7
     n_next = day_range
-    # train_validation_test_split(base_path, type_num, n_predictions, n_next, 426, 122, 61, day_range=day_range, norm=norm, sum_flag=False)
-    # train_validation_test_split(base_path, type_num, n_predictions, n_next, 426, 122, 61, day_range=day_range, norm=norm, sum_flag=True)
-    train_validation_test_split(base_path, type_num, n_predictions, n_next, 512, 146, 73, day_range=day_range, norm=norm, sum_flag=False)
-    train_validation_test_split(base_path, type_num, n_predictions, n_next, 512, 146, 73, day_range=day_range, norm=norm, sum_flag=True)
+
+    if train_range == 426:
+        train_validation_test_split(base_path, type_num, n_predictions, n_next, 426, 122, 61, day_range=day_range, norm=norm, sum_flag=False)
+        train_validation_test_split(base_path, type_num, n_predictions, n_next, 426, 122, 61, day_range=day_range, norm=norm, sum_flag=True)
+    elif train_range == 512:
+        train_validation_test_split(base_path, type_num, n_predictions, n_next, 512, 146, 73, day_range=day_range,
+                                    norm=norm, sum_flag=False)
+        train_validation_test_split(base_path, type_num, n_predictions, n_next, 512, 146, 73, day_range=day_range, norm=norm, sum_flag=True)
 
 
-def data_preprocessing(base_path, type_num):
-    # before_normalization(base_path, type_num)
-    # normalization_and_split(base_path, type_num, day_range=24, norm='minmax')
-    # normalization_and_split(base_path, type_num, day_range=24, norm='standard')
-    # normalization_and_split(base_path, type_num, day_range=48, norm='minmax')
-    normalization_and_split(base_path, type_num, day_range=48, norm='standard')
-    # normalization_and_split(base_path, type_num, day_range=96, norm='minmax')
-    # normalization_and_split(base_path, type_num, day_range=96, norm='standard')
+def normalization(base_path, type_num, day_range=96, norm='minmax'):
+    data_normalization(base_path, type_num, day_range=day_range, norm=norm)
+    data_normalization(base_path, type_num, day_range=day_range, norm=norm, sum_flag=True)
+
+
+def data_preprocessing(base_path, type_num, train_range=512, need_filter=False):
+    if need_filter:
+        before_normalization(base_path, type_num, need_filter=need_filter)
+    else:
+        before_normalization(base_path, type_num)
+
+        day_range_list = [48]
+        for day_range in day_range_list:
+            # normalization(base_path, type_num, day_range=day_range, norm='minmax')
+            normalization(base_path, type_num, day_range=day_range, norm='standard')
+
+            week_range = 7
+            daily_load_plotting(base_path, type_num, start=1, end=150, week_range=week_range, day_range=day_range,
+                                norm='standard')
+
+            if train_range == 426:
+                start = 426 + 122 + 8
+                end = 426 + 122 + 61
+            elif train_range == 512:
+                start = 512 + 146 + 8
+                end = 512 + 146 + 73
+
+            daily_load_plotting(base_path, type_num, start=start, end=end, week_range=week_range, day_range=day_range,
+                                norm='standard')
+
+            split(base_path, type_num, day_range=day_range, norm='standard')
+
 
 if __name__ == '__main__':
     base_path = '../../../Downloads/Thesis-temp/'
@@ -145,19 +181,9 @@ if __name__ == '__main__':
     model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
 
 
-    # data_preprocessing(base_path, args.type_num)
+    # data_preprocessing(base_path, args.type_num, args.train_range, need_filter=True)
+    # data_preprocessing(base_path, args.type_num, args.train_range, need_filter=False)
 
-    # daily_load_plotting(base_path, args.type_num, start=1 , end=150, week_range=7, day_range=args.day_range, norm='standard')
-    # if args.train_range == 426:
-    #     start = 426+122+8
-    #     end = 426+122+61
-    #     week_range = 7
-    # elif args.train_range == 512:
-    #     start = 512+146+8
-    #     end = 512+146+73
-    #     week_range = 7
-    # daily_load_plotting(base_path, args.type_num, start=start , end=end, week_range=week_range, day_range=args.day_range, norm='standard')
-    #
     logging.basicConfig()
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
