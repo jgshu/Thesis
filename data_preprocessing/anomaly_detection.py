@@ -136,6 +136,8 @@ def anomaly_detection(base_path, type_num, anomaly_detection_path, sum_flag=Fals
         if need_ad:
             # 异常值分析 - 3σ原则
             data = three_sigma_alg(anomaly_detection_path, df, user_id, co_name)
+        else:
+            data = df['load']
 
         # 保存csv文件
         if not os.path.exists(type_num_after_anomaly_detection_path):
