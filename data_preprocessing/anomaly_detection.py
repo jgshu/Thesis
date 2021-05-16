@@ -1,12 +1,13 @@
 import pandas as pd
 import numpy as np
 import os
+import shutil
 import matplotlib.pyplot as plt
 from scipy import stats
 from .utils import find_files
 
 
-def anomaly_replace(data, df_len, err_idx_list):
+def anomaly_replace(data, df_len, err_idx_list, detection_num):
     i = 0
     while i < len(err_idx_list):
         num = err_idx_list[i]
@@ -27,13 +28,20 @@ def anomaly_replace(data, df_len, err_idx_list):
             right = num + 1
             cnt = 1
             while (right in err_idx_list) & (right < df_len):
+                right = right + 1
                 cnt = cnt + 1
             if right == len(data):
                 print('Fail.')
                 break
             for j in range(1, cnt + 1):
-                data.loc[num + j - 1] = (j - 1) * data.loc[right] / right
+                # 存在替换后仍为异常值的问题，如type12的南京聚隆科技股份有限公司
+                if detection_num < 15:
+                    data.loc[num + j - 1] = (j - 1) * data.loc[right] / right
+                else:
+                    data.loc[num + j - 1] = data.loc[right]
+                # data.loc[num + j - 1] =  data.loc[num + j - 1 + 96 * 7]
             i = i + cnt
+
         elif num == df_len - 1:
             left = num - 1
             data.loc[num] = data.loc[left]
@@ -41,7 +49,7 @@ def anomaly_replace(data, df_len, err_idx_list):
     return data
 
 
-def three_sigma_alg(base_path, type_num, df, user_id, co_name):
+def three_sigma_alg(anomaly_detection_path, df, user_id, co_name):
     data = df['load']
     # 创建数据
     u = data.mean()  # 计算均值
@@ -76,14 +84,12 @@ def three_sigma_alg(base_path, type_num, df, user_id, co_name):
         plt.grid()
 
         # 保存图片
-        anomaly_detection_path = base_path + 'output/img/type_%s/anomaly_detection/' % type_num
-        if not os.path.exists(anomaly_detection_path):
-            os.makedirs(anomaly_detection_path)
         plt.savefig(anomaly_detection_path + '%s_%s_%d.png' % (co_name, user_id, detection_num))
-        # plt.show()
+        plt.close(fig)
 
         # 前后取均值替换异常数据
-        data = anomaly_replace(data, len(df), err_idx_list)
+
+        data = anomaly_replace(data, len(df), err_idx_list, detection_num)
 
         # 再次检测
         u = data.mean()
@@ -96,9 +102,10 @@ def three_sigma_alg(base_path, type_num, df, user_id, co_name):
     return data
 
 
-def anomaly_detection(base_path, type_num, sum_flag=False):
+def anomaly_detection(base_path, type_num, anomaly_detection_path, sum_flag=False, need_ad=True):
     type_num_original_path = base_path + 'data/type_%s/original/' % type_num
     type_num_after_anomaly_detection_path = base_path + 'data/type_%s/after_anomaly_detection/' % type_num
+
     sum_filename = 'type%s_%s' % (type_num, type_num)
     file_names_list = find_files(type_num_original_path)
 
@@ -126,8 +133,9 @@ def anomaly_detection(base_path, type_num, sum_flag=False):
         data = df.iloc[:, 1:].values
         print('Any nan?', np.any(np.isnan(data)))
 
-        # 异常值分析 - 3σ原则
-        data = three_sigma_alg(base_path, type_num, df, user_id, co_name)
+        if need_ad:
+            # 异常值分析 - 3σ原则
+            data = three_sigma_alg(anomaly_detection_path, df, user_id, co_name)
 
         # 保存csv文件
         if not os.path.exists(type_num_after_anomaly_detection_path):

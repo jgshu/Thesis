@@ -40,7 +40,7 @@ def add_args(parser):
     parser.add_argument('--model', type=str, default='BiLSTM', metavar='N',
                         help='neural network used in training')
 
-    parser.add_argument('--type_num', type=int, default=22, metavar='N',
+    parser.add_argument('--type_num', type=int, default=14, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
@@ -72,7 +72,7 @@ def add_args(parser):
 
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
 
-    parser.add_argument('--epochs', type=int, default=150, metavar='EP',
+    parser.add_argument('--epochs', type=int, default=170, metavar='EP',
                         help='how many epochs will be trained locally')
 
     parser.add_argument('--frequency_of_the_test', type=int, default=10,
@@ -103,22 +103,28 @@ def create_model(args, device, model_name, output_dim):
     return model
 
 
-def before_normalization(base_path, type_num, need_filter=False):
+def before_normalization(base_path, type_num, need_filter=False, need_ad=True):
     # txt_to_csv(base_path)
     # split_data_by_trade_type(base_path)
 
     type_num_path = base_path + 'data/type_%s/' % type_num
     if os.path.exists(type_num_path):
         shutil.rmtree(type_num_path)
+    os.makedirs(type_num_path)
+
+    anomaly_detection_path = base_path + 'output/img/type_%s/anomaly_detection/' % type_num
+    if os.path.exists(anomaly_detection_path):
+        shutil.rmtree(anomaly_detection_path)
+    os.makedirs(anomaly_detection_path)
 
     feature_engineering(base_path, type_num)
-    anomaly_detection(base_path, type_num)
+    anomaly_detection(base_path, type_num, anomaly_detection_path, need_ad=need_ad)
 
     sum_user_id_list = []
     feature_engineering(base_path, type_num, sum_flag=True, sum_user_id_list=sum_user_id_list)
-    anomaly_detection(base_path, type_num, sum_flag=True)
+    anomaly_detection(base_path, type_num, anomaly_detection_path, sum_flag=True, need_ad=need_ad)
     if need_filter:
-        daily_load_plotting(base_path, type_num, start=1, end=150, week_range=7, day_range=96,
+        daily_load_plotting(base_path, type_num, start=1, end=300, week_range=7, day_range=96,
                             norm='standard', need_filter=True)
 
 
@@ -142,7 +148,8 @@ def normalization(base_path, type_num, day_range=96, norm='minmax'):
 
 def data_preprocessing(base_path, type_num, train_range=512, need_filter=False):
     if need_filter:
-        before_normalization(base_path, type_num, need_filter=need_filter)
+        before_normalization(base_path, type_num, need_filter=need_filter, need_ad=False)
+        # before_normalization(base_path, type_num, need_filter=need_filter)
     else:
         before_normalization(base_path, type_num)
 
@@ -165,7 +172,7 @@ def data_preprocessing(base_path, type_num, train_range=512, need_filter=False):
             daily_load_plotting(base_path, type_num, start=start, end=end, week_range=week_range, day_range=day_range,
                                 norm='standard')
 
-            split(base_path, type_num, day_range=day_range, norm='standard')
+            split(base_path, type_num, train_range=train_range, day_range=day_range, norm='standard')
 
 
 if __name__ == '__main__':
@@ -180,36 +187,35 @@ if __name__ == '__main__':
     device = torch.device("cuda:" + str(args.gpu) if torch.cuda.is_available() else "cpu")
     model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
 
+    data_preprocessing(base_path, args.type_num, train_range=args.train_range, need_filter=True)
+    # data_preprocessing(base_path, args.type_num, train_range=args.train_range, need_filter=False)
 
-    # data_preprocessing(base_path, args.type_num, args.train_range, need_filter=True)
-    # data_preprocessing(base_path, args.type_num, args.train_range, need_filter=False)
-
-    logging.basicConfig()
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-
-    logger.info(args)
-    logger.info(device)
-    logging.info(model)
-
-    run = wandb.init(
-        project="thesis-without-fedml",
-        name=args.model + "-e" + str(args.epochs) + "-lr" + str(args.lr),
-        config=args,
-    )
-
-    now = datetime.now()
-    dt_string = now.strftime("%Y%m%d_%H%M%S")
-    logger.info(dt_string)
-
-    # dt_string = '20210515_173914'
-
-    model_path = base_path + 'output/model/%s/' % dt_string
-    if not os.path.exists(model_path):
-        os.makedirs(model_path)
-
-    training(base_path, model_path, args, device, model, user_id)
-    testing(base_path, model_path, args, dt_string, model, user_id)
-
-    print('----------------------')
-    print('dt_string:', dt_string)
+    # logging.basicConfig()
+    # logger = logging.getLogger()
+    # logger.setLevel(logging.DEBUG)
+    #
+    # logger.info(args)
+    # logger.info(device)
+    # logging.info(model)
+    #
+    # run = wandb.init(
+    #     project="thesis-without-fedml-type%s" % args.type_num,
+    #     name=args.model + "-e" + str(args.epochs) + "-lr" + str(args.lr),
+    #     config=args,
+    # )
+    #
+    # now = datetime.now()
+    # dt_string = now.strftime("%Y%m%d_%H%M%S")
+    # logger.info(dt_string)
+    #
+    # # dt_string = '20210516_071311'
+    #
+    # model_path = base_path + 'output/model/%s/' % dt_string
+    # if not os.path.exists(model_path):
+    #     os.makedirs(model_path)
+    #
+    # training(base_path, model_path, args, device, model, user_id)
+    # testing(base_path, model_path, args, dt_string, model, user_id)
+    #
+    # print('----------------------')
+    # print('dt_string:', dt_string)
