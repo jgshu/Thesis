@@ -40,7 +40,7 @@ def add_args(parser):
     parser.add_argument('--model', type=str, default='BiLSTM', metavar='N',
                         help='neural network used in training')
 
-    parser.add_argument('--type_num', type=int, default=7, metavar='N',
+    parser.add_argument('--type_num', type=int, default=10, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
