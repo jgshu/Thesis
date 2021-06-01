@@ -6,14 +6,14 @@ from torch import nn
 # SLSTM
 ###############
 class SLSTM(nn.Module):
-    def __init__(self, n_features, n_hidden, seq_len, n_layers, out_features, do=0.5, device='cpu'):
+    def __init__(self, args, device='cpu'):
         super(SLSTM, self).__init__()
-        self.input_dim = n_features
-        self.output_dim = out_features
-        self.hidden_dim = n_hidden
-        self.seq_len = seq_len
-        self.num_layers = n_layers
-        self.drop_out = do
+        self.input_dim = args.n_features
+        self.output_dim = args.out_features
+        self.hidden_dim = args.n_hidden
+        self.seq_len = args.seq_len
+        self.num_layers = args.n_layers
+        self.drop_out = args.do
         self.device = device
 
         # x: (batch_dim, seq_dim, feature_dim) or (samples, timesteps, features) when considering batch_first=True
@@ -26,6 +26,7 @@ class SLSTM(nn.Module):
         )
 
         self.linear = nn.Linear(in_features=self.hidden_dim * self.seq_len, out_features=self.output_dim)
+        self.hidden_cell = self.init_hidden(batch_size=args.batch_size)
 
     def init_hidden(self, batch_size):
         # even with batch_first = True this remains same as docs
@@ -35,7 +36,6 @@ class SLSTM(nn.Module):
 
     def forward(self, x):
         batch_size, _, _ = x.shape
-        self.hidden = self.init_hidden(batch_size)
         lstm_out, _ = self.lstm(
             x, self.hidden
         )
@@ -47,14 +47,14 @@ class SLSTM(nn.Module):
 # BiLSTM
 ###############
 class BiLSTM(nn.Module):
-    def __init__(self, n_features, n_hidden, seq_len, n_layers, out_features, do=0.5, device='cpu'):
+    def __init__(self, args, device='cpu'):
         super(BiLSTM, self).__init__()
-        self.input_dim = n_features
-        self.output_dim = out_features
-        self.hidden_dim = n_hidden
-        self.seq_len = seq_len
-        self.num_layers = n_layers
-        self.drop_out = do
+        self.input_dim = args.n_features
+        self.output_dim = args.out_features
+        self.hidden_dim = args.n_hidden
+        self.seq_len = args.seq_len
+        self.num_layers = args.n_layers
+        self.drop_out = args.do
         self.device = device
 
         # x: (batch_dim, seq_dim, feature_dim) or (samples, timesteps, features) when considering batch_first=True
@@ -67,6 +67,7 @@ class BiLSTM(nn.Module):
             bidirectional=True,
         )
         self.linear = nn.Linear(in_features=self.hidden_dim * self.seq_len * 2, out_features=self.output_dim)
+        self.hidden_cell = self.init_hidden(batch_size=args.batch_size)
 
     def init_hidden(self, batch_size):
         # even with batch_first = True this remains same as docs
@@ -74,19 +75,8 @@ class BiLSTM(nn.Module):
         cell_state = torch.zeros(self.num_layers*2, batch_size, self.hidden_dim).requires_grad_().to(self.device)
         return (hidden_state, cell_state)
 
-    # def forward(self, x):
-    #     batch_size, _, _ = x.shape
-    #     self.hidden = self.init_hidden(batch_size)
-    #     lstm_out, _ = self.lstm(
-    #         x,
-    #         self.hidden
-    #     )
-    #     x = lstm_out.contiguous().view(batch_size, -1)
-    #     return self.linear(x)
-
     def forward(self, x):
         batch_size, _, _ = x.shape
-        self.hidden = self.init_hidden(batch_size)
         lstm_out, self.hidden = self.lstm(
             x,
             self.hidden

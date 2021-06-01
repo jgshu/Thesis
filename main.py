@@ -92,9 +92,7 @@ def create_model(args, device, model_name, output_dim):
 
     model = None
     if args.model == 'BiLSTM':
-        model = BiLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
-                  n_layers=args.n_layers, out_features=args.out_features, do=args.do,
-                  device=device).to(device)
+        model = BiLSTM(args, device=device).to(device)
     elif args.model == 'simpleLSTM':
         model = simpleLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
                   n_layers=args.n_layers, out_features=args.out_features, do=args.do,
