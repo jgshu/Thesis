@@ -39,13 +39,21 @@ def load_partition_data_industry_load(normalization_tvt_path, args, specific_use
     train = torch.utils.data.TensorDataset(train_x, train_y)
     validation = torch.utils.data.TensorDataset(validation_x, validation_y)
 
+    # print(train_x.shape)
+    # print(validation_x.shape)
+
+    # 由于data size % batch size != 0， 模型训练时会出错，需要设置drop_last=True
     train_loader = torch.utils.data.DataLoader(dataset=train,
                                                batch_size=args.batch_size,
-                                               shuffle=False)
+                                               shuffle=False,
+                                               drop_last=True)
 
     validation_loader = torch.utils.data.DataLoader(dataset=validation,
                                                     batch_size=args.batch_size,
-                                                    shuffle=False)
+                                                    shuffle=False,
+                                                    drop_last=True)
+    # print(len(train_loader))
+    # print(len(validation_loader))
 
     return train_loader, validation_loader
 

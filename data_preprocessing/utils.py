@@ -41,3 +41,17 @@ def create_dataset(data, n_predictions, n_next):
     train_x = np.array(train_x, dtype='float64')
     train_y = np.array(train_y, dtype='float64')
     return train_x, train_y
+
+# # 测试划分正确性
+# np.random.seed(0)
+# values = np.random.rand(20, 3)
+# label = values[:, -1].reshape(20, 1)
+# # data = pd.DataFrame(values, columns=['a', 'b', 'c'])
+# n_predictions = 7
+# n_next = 3
+# train_x, _ = create_dataset(values, n_predictions, n_next)  # 前一周96 * 7个点预测当天96个点
+# _, train_y = create_dataset(label, n_predictions, n_next)
+#
+# print(values)
+# print(train_x)
+# print(train_y)

@@ -61,14 +61,3 @@ def train_test_split(base_path, type_num, n_predictions, n_next, train_range, te
         np.save(normalization_tt_path + 'test_x_range_%s.npy' % train_range, test_x)
         np.save(normalization_tt_path + 'test_y_range_%s.npy' % train_range, test_y)
 
-    # 测试划分正确性
-    # np.random.seed(0)
-    # values = np.random.rand(20, 3)
-    # label = values[:, -1].reshape(20, 1)
-    # # data = pd.DataFrame(values, columns=['a', 'b', 'c'])
-    #
-    # train_x, _ = create_dataset(values, n_predictions, n_next)  # 前一周96 * 7个点预测当天96个点
-    # _, train_y = create_dataset(label, n_predictions, n_next)
-    #
-    # print(train_x)
-    # print(train_y)

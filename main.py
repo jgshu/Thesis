@@ -40,7 +40,7 @@ def add_args(parser):
     parser.add_argument('--model', type=str, default='BiLSTM', metavar='N',
                         help='neural network used in training')
 
-    parser.add_argument('--type_num', type=int, default=14, metavar='N',
+    parser.add_argument('--type_num', type=int, default=7, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
@@ -187,35 +187,35 @@ if __name__ == '__main__':
     device = torch.device("cuda:" + str(args.gpu) if torch.cuda.is_available() else "cpu")
     model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
 
-    data_preprocessing(base_path, args.type_num, train_range=args.train_range, need_filter=True)
+    # data_preprocessing(base_path, args.type_num, train_range=args.train_range, need_filter=True)
     # data_preprocessing(base_path, args.type_num, train_range=args.train_range, need_filter=False)
 
-    # logging.basicConfig()
-    # logger = logging.getLogger()
-    # logger.setLevel(logging.DEBUG)
-    #
-    # logger.info(args)
-    # logger.info(device)
-    # logging.info(model)
-    #
-    # run = wandb.init(
-    #     project="thesis-without-fedml-type%s" % args.type_num,
-    #     name=args.model + "-e" + str(args.epochs) + "-lr" + str(args.lr),
-    #     config=args,
-    # )
-    #
-    # now = datetime.now()
-    # dt_string = now.strftime("%Y%m%d_%H%M%S")
-    # logger.info(dt_string)
-    #
-    # # dt_string = '20210516_071311'
-    #
-    # model_path = base_path + 'output/model/%s/' % dt_string
-    # if not os.path.exists(model_path):
-    #     os.makedirs(model_path)
-    #
-    # training(base_path, model_path, args, device, model, user_id)
-    # testing(base_path, model_path, args, dt_string, model, user_id)
-    #
-    # print('----------------------')
-    # print('dt_string:', dt_string)
+    logging.basicConfig()
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    logger.info(args)
+    logger.info(device)
+    logging.info(model)
+
+    run = wandb.init(
+        project="thesis-without-fedml-type%s" % args.type_num,
+        name=args.model + "-e" + str(args.epochs) + "-lr" + str(args.lr),
+        config=args,
+    )
+
+    now = datetime.now()
+    dt_string = now.strftime("%Y%m%d_%H%M%S")
+    logger.info(dt_string)
+
+    # dt_string = '20210516_071311'
+
+    model_path = base_path + 'output/model/%s/' % dt_string
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
+
+    training(base_path, model_path, args, device, model, user_id)
+    testing(base_path, model_path, args, dt_string, model, user_id)
+
+    print('----------------------')
+    print('dt_string:', dt_string)

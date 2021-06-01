@@ -74,10 +74,20 @@ class BiLSTM(nn.Module):
         cell_state = torch.zeros(self.num_layers*2, batch_size, self.hidden_dim).requires_grad_().to(self.device)
         return (hidden_state, cell_state)
 
+    # def forward(self, x):
+    #     batch_size, _, _ = x.shape
+    #     self.hidden = self.init_hidden(batch_size)
+    #     lstm_out, _ = self.lstm(
+    #         x,
+    #         self.hidden
+    #     )
+    #     x = lstm_out.contiguous().view(batch_size, -1)
+    #     return self.linear(x)
+
     def forward(self, x):
         batch_size, _, _ = x.shape
         self.hidden = self.init_hidden(batch_size)
-        lstm_out, _ = self.lstm(
+        lstm_out, self.hidden = self.lstm(
             x,
             self.hidden
         )
@@ -167,7 +177,7 @@ class simpleLSTM(nn.Module):
         #     x.view(len(x), self.seq_len, -1),
         #     self.hidden_cell
         # )
-        lstm_out, _= self.lstm(
+        lstm_out, _ = self.lstm(
             x.view(len(x), self.seq_len, -1),
         )
         last_time_step = lstm_out.view(
