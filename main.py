@@ -72,7 +72,7 @@ def add_args(parser):
 
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
 
-    parser.add_argument('--epochs', type=int, default=170, metavar='EP',
+    parser.add_argument('--epochs', type=int, default=50, metavar='EP',
                         help='how many epochs will be trained locally')
 
     parser.add_argument('--frequency_of_the_test', type=int, default=10,
@@ -93,10 +93,8 @@ def create_model(args, device, model_name, output_dim):
     model = None
     if args.model == 'BiLSTM':
         model = BiLSTM(args, device=device).to(device)
-    elif args.model == 'simpleLSTM':
-        model = simpleLSTM(n_features=args.n_features, n_hidden=args.n_hidden, seq_len=args.seq_len,
-                  n_layers=args.n_layers, out_features=args.out_features, do=args.do,
-                  device=device).to(device)
+    elif args.model == 'SLSTM':
+        model = SLSTM(args, device=device).to(device)
 
     return model
 

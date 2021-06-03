@@ -71,7 +71,7 @@ def test_plotting(base_path, args, file_name, dt_string, test_y, test_y_pred, sp
     color_list = [CB91_Blue, CB91_Pink, CB91_Green, CB91_Amber,
                   CB91_Purple, CB91_Violet]
 
-    test_path = base_path + 'output/img/type_%s/test/day_%s/%s_normalization/%s/' % (args.type_num, args.day_range, args.norm, dt_string)
+    test_path = base_path + 'output/img/type_%s/test/day_%s/%s_normalization_%s/%s/' % (args.type_num, args.day_range, args.norm, args.train_range, dt_string)
     if not os.path.exists(test_path):
         os.makedirs(test_path)
 
