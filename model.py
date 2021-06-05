@@ -11,7 +11,7 @@ class SLSTM(nn.Module):
         super(SLSTM, self).__init__()
         self.input_dim = args.n_features
         self.output_dim = args.out_features
-        self.hidden_dim = args.n_hidden
+        self.hidden_dim = args.hidRNN
         self.seq_len = args.seq_len
         self.num_layers = args.n_layers
         self.drop_out = args.do
@@ -60,7 +60,7 @@ class BiLSTM(nn.Module):
         super(BiLSTM, self).__init__()
         self.input_dim = args.n_features
         self.output_dim = args.out_features
-        self.hidden_dim = args.n_hidden
+        self.hidden_dim = args.hidRNN
         self.seq_len = args.seq_len
         self.num_layers = args.n_layers
         self.drop_out = args.do
@@ -121,9 +121,9 @@ class LSTNet(nn.Module):
         super(LSTNet, self).__init__()
         self.P = args.seq_len  # 预测点前的时间窗口长度
         self.m = args.n_features  # 特征数
-        self.hidR = args.hidRNN  # RNN隐藏层数
-        self.hidC = args.hidCNN  # CNN隐藏层数
-        self.hidS = args.hidSkip  # 跳跃层隐藏层数
+        self.hidR = args.hidRNN  # RNN隐藏层单元数
+        self.hidC = args.hidCNN  # CNN隐藏层单元数
+        self.hidS = args.hidSkip  # 跳跃层隐藏单元数
         self.Ck = args.CNN_kernel  # CNN层kernel长度
         self.skip = args.skip # 单个周期长度
         self.pt = (self.P - self.Ck) // self.skip  # 时间窗口长度被kernel扫描多少个周期

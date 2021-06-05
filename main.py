@@ -37,7 +37,7 @@ def add_args(parser):
     parser.add_argument('--norm', type=str, default='standard', metavar='N',
                         help='normalization')
 
-    parser.add_argument('--model', type=str, default='LSTNet', metavar='N',
+    parser.add_argument('--model', type=str, default='BiLSTM', metavar='N',
                         help='neural network used in training')
 
     parser.add_argument('--type_num', type=int, default=7, metavar='N',
@@ -46,7 +46,7 @@ def add_args(parser):
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
                         help='number of features')
 
-    parser.add_argument('--n_hidden', type=int, default=64, metavar='N',
+    parser.add_argument('--n_hidden', type=int, default=100, metavar='N',
                         help='number of hidden nodes')
 
     parser.add_argument('--seq_len', type=int, default=336, metavar='N',
@@ -72,7 +72,7 @@ def add_args(parser):
 
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
 
-    parser.add_argument('--epochs', type=int, default=10, metavar='EP',
+    parser.add_argument('--epochs', type=int, default=200, metavar='EP',
                         help='how many epochs will be trained locally')
 
     parser.add_argument('--frequency_of_the_test', type=int, default=10,
@@ -204,10 +204,12 @@ if __name__ == '__main__':
     # 用于挑选用户
     # data_preprocessing(base_path, args.type_num, train_range=args.train_range, need_filter=True)
     # data_preprocessing(base_path, args.type_num, train_range=args.train_range, need_filter=False)
-    data_preprocessing(base_path, args, need_filter=False)
+    # data_preprocessing(base_path, args, need_filter=False)
 
     logging.basicConfig()
+    # 禁止font manager的debug信息
     logger = logging.getLogger()
+    logging.getLogger('matplotlib.font_manager').disabled = True
     logger.setLevel(logging.DEBUG)
 
     logger.info(args)
@@ -224,7 +226,7 @@ if __name__ == '__main__':
     dt_string = now.strftime("%Y%m%d_%H%M%S")
     logger.info(dt_string)
 
-    # dt_string = '20210604_211729'
+    # dt_string = '20210606_012035'
 
     model_path = base_path + 'output/type_%s/day_%s_range_%s_%s/model/%s/save/' \
                  % (args.type_num, args.day_range, args.train_range, args.norm, dt_string)
