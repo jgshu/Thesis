@@ -37,10 +37,10 @@ def add_args(parser):
     parser.add_argument('--norm', type=str, default='standard', metavar='N',
                         help='normalization')
 
-    parser.add_argument('--model', type=str, default='BiLSTM', metavar='N',
+    parser.add_argument('--model', type=str, default='LSTNet', metavar='N',
                         help='neural network used in training')
 
-    parser.add_argument('--type_num', type=int, default=10, metavar='N',
+    parser.add_argument('--type_num', type=int, default=7, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
@@ -55,7 +55,7 @@ def add_args(parser):
     parser.add_argument('--n_layers', type=int, default=2, metavar='N',
                         help='number of layers')
 
-    parser.add_argument('--out_features', type=int, default=48, metavar='N',
+    parser.add_argument('--out_features', type=int, default=1, metavar='N',
                         help='number of out features')
 
     parser.add_argument('--do', type=float, default=0.2, metavar='N',
@@ -72,7 +72,7 @@ def add_args(parser):
 
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
 
-    parser.add_argument('--epochs', type=int, default=50, metavar='EP',
+    parser.add_argument('--epochs', type=int, default=150, metavar='EP',
                         help='how many epochs will be trained locally')
 
     parser.add_argument('--frequency_of_the_test', type=int, default=10,
@@ -83,6 +83,27 @@ def add_args(parser):
 
     parser.add_argument('--ci', type=int, default=0,
                         help='CI')
+
+    parser.add_argument('--hidCNN', type=int, default=100,
+                        help='number of CNN hidden units')
+
+    parser.add_argument('--hidRNN', type=int, default=100,
+                        help='number of RNN hidden units')
+
+    parser.add_argument('--CNN_kernel', type=int, default=6,
+                        help='the kernel size of the CNN layers')
+
+    parser.add_argument('--highway_window', type=int, default=48,
+                        help='The window size of the highway component')
+
+    parser.add_argument('--clip', type=float, default=10.,
+                        help='gradient clipping')
+
+    parser.add_argument('--skip', type=float, default=48)
+
+    parser.add_argument('--hidSkip', type=int, default=5)
+
+    parser.add_argument('--output_fun', type=str, default='Linear')
 
     return parser
 
@@ -95,80 +116,79 @@ def create_model(args, device, model_name, output_dim):
         model = BiLSTM(args, device=device).to(device)
     elif args.model == 'SLSTM':
         model = SLSTM(args, device=device).to(device)
-
+    elif args.model == 'LSTNet':
+        model = LSTNet(args, device=device).to(device)
     return model
 
 
-def before_normalization(base_path, type_num, need_filter=False, need_ad=True):
+def before_normalization(base_path, args, need_filter=False, need_ad=True):
     # txt_to_csv(base_path)
     # split_data_by_trade_type(base_path)
 
-    type_num_path = base_path + 'data/type_%s/' % type_num
+    type_num_path = base_path + 'data/type_%s/' % args.type_num
     if os.path.exists(type_num_path):
         shutil.rmtree(type_num_path)
     os.makedirs(type_num_path)
 
-    anomaly_detection_path = base_path + 'output/img/type_%s/anomaly_detection/' % type_num
+    anomaly_detection_path = base_path + 'output/img/type_%s/anomaly_detection/' % args.type_num
     if os.path.exists(anomaly_detection_path):
         shutil.rmtree(anomaly_detection_path)
     os.makedirs(anomaly_detection_path)
 
-    feature_engineering(base_path, type_num)
-    anomaly_detection(base_path, type_num, anomaly_detection_path, need_ad=need_ad)
+    feature_engineering(base_path, args.type_num)
+    anomaly_detection(base_path, args.type_num, anomaly_detection_path, need_ad=need_ad)
 
     sum_user_id_list = []
-    feature_engineering(base_path, type_num, sum_flag=True, sum_user_id_list=sum_user_id_list)
-    anomaly_detection(base_path, type_num, anomaly_detection_path, sum_flag=True, need_ad=need_ad)
+    feature_engineering(base_path, args.type_num, sum_flag=True, sum_user_id_list=sum_user_id_list)
+    anomaly_detection(base_path, args.type_num, anomaly_detection_path, sum_flag=True, need_ad=need_ad)
     if need_filter:
-        daily_load_plotting(base_path, type_num, start=1, end=300, week_range=7, day_range=96,
+        daily_load_plotting(base_path, args.type_num, start=1, end=300, week_range=7, day_range=96,
                             norm='standard', need_filter=True)
 
 
-def split(base_path, type_num, train_range=512, day_range=96, norm='minmax'):
-    n_predictions = day_range * 7
-    n_next = day_range
-
-    if train_range == 426:
-        train_validation_test_split(base_path, type_num, n_predictions, n_next, 426, 122, 61, day_range=day_range, norm=norm, sum_flag=False)
-        train_validation_test_split(base_path, type_num, n_predictions, n_next, 426, 122, 61, day_range=day_range, norm=norm, sum_flag=True)
-    elif train_range == 512:
-        train_validation_test_split(base_path, type_num, n_predictions, n_next, 512, 146, 73, day_range=day_range,
-                                    norm=norm, sum_flag=False)
-        train_validation_test_split(base_path, type_num, n_predictions, n_next, 512, 146, 73, day_range=day_range, norm=norm, sum_flag=True)
-
-
-def normalization(base_path, type_num, day_range=96, norm='minmax'):
-    data_normalization(base_path, type_num, day_range=day_range, norm=norm)
-    data_normalization(base_path, type_num, day_range=day_range, norm=norm, sum_flag=True)
+def split(base_path, args):
+    n_predictions = args.day_range * 7
+    # n_next = day_range
+    n_next = 1
+    if args.train_range == 426:
+        train_validation_test_split(base_path, args.type_num, args.seq_len, args.out_features, 426, 122, 61,
+                                    day_range=args.day_range, norm=args.norm, sum_flag=False)
+        train_validation_test_split(base_path, args.type_num, args.seq_len, args.out_features, 426, 122, 61,
+                                    day_range=args.day_range, norm=args.norm, sum_flag=True)
+    elif args.train_range == 512:
+        train_validation_test_split(base_path, args.type_num, args.seq_len, args.out_features, 512, 146, 73,
+                                    day_range=args.day_range, norm=args.norm, sum_flag=False)
+        train_validation_test_split(base_path, args.type_num, args.seq_len, args.out_features, 512, 146, 73,
+                                    day_range=args.day_range, norm=args.norm, sum_flag=True)
 
 
-def data_preprocessing(base_path, type_num, train_range=512, need_filter=False):
+def normalization(base_path, args):
+    data_normalization(base_path, args.type_num, day_range=args.day_range, norm=args.norm)
+    data_normalization(base_path, args.type_num, day_range=args.day_range, norm=args.norm, sum_flag=True)
+
+
+def data_preprocessing(base_path, args, need_filter=False):
     if need_filter:
-        before_normalization(base_path, type_num, need_filter=need_filter, need_ad=False)
-        # before_normalization(base_path, type_num, need_filter=need_filter)
+        before_normalization(base_path, args, need_filter=need_filter, need_ad=False)
     else:
-        before_normalization(base_path, type_num)
+        before_normalization(base_path, args)
 
-        day_range_list = [48]
-        for day_range in day_range_list:
-            # normalization(base_path, type_num, day_range=day_range, norm='minmax')
-            normalization(base_path, type_num, day_range=day_range, norm='standard')
+        week_range = 7
+        normalization(base_path, args)
+        daily_load_plotting(base_path, args.type_num, start=1, end=150, week_range=week_range, day_range=args.day_range,
+                            norm=args.norm)
 
-            week_range = 7
-            daily_load_plotting(base_path, type_num, start=1, end=150, week_range=week_range, day_range=day_range,
-                                norm='standard')
+        if args.train_range == 426:
+            start = 426 + 122 + 8
+            end = 426 + 122 + 61
+        elif args.train_range == 512:
+            start = 512 + 146 + 8
+            end = 512 + 146 + 73
 
-            if train_range == 426:
-                start = 426 + 122 + 8
-                end = 426 + 122 + 61
-            elif train_range == 512:
-                start = 512 + 146 + 8
-                end = 512 + 146 + 73
+        daily_load_plotting(base_path, args.type_num, start=start, end=end, week_range=week_range, day_range=args.day_range,
+                            norm=args.norm)
 
-            daily_load_plotting(base_path, type_num, start=start, end=end, week_range=week_range, day_range=day_range,
-                                norm='standard')
-
-            split(base_path, type_num, train_range=train_range, day_range=day_range, norm='standard')
+        split(base_path, args)
 
 
 if __name__ == '__main__':
@@ -183,8 +203,10 @@ if __name__ == '__main__':
     device = torch.device("cuda:" + str(args.gpu) if torch.cuda.is_available() else "cpu")
     model = create_model(args, device=device, model_name=args.model, output_dim=args.out_features)
 
+    # 用于挑选用户
     # data_preprocessing(base_path, args.type_num, train_range=args.train_range, need_filter=True)
     # data_preprocessing(base_path, args.type_num, train_range=args.train_range, need_filter=False)
+    data_preprocessing(base_path, args, need_filter=False)
 
     logging.basicConfig()
     logger = logging.getLogger()
@@ -204,7 +226,7 @@ if __name__ == '__main__':
     dt_string = now.strftime("%Y%m%d_%H%M%S")
     logger.info(dt_string)
 
-    # dt_string = '20210516_071311'
+    # dt_string = '20210604_211729'
 
     model_path = base_path + 'output/model/%s/' % dt_string
     if not os.path.exists(model_path):

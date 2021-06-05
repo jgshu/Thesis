@@ -56,8 +56,7 @@ def train_test_split(base_path, type_num, n_predictions, n_next, train_range, te
             os.makedirs(normalization_tt_path)
 
         print('Saving %s - %s npy file...' % (co_name, user_id))
-        np.save(normalization_tt_path + 'train_x_range_%s.npy' % train_range, train_x)
-        np.save(normalization_tt_path + 'train_y_range_%s.npy' % train_range, train_y)
-        np.save(normalization_tt_path + 'test_x_range_%s.npy' % train_range, test_x)
-        np.save(normalization_tt_path + 'test_y_range_%s.npy' % train_range, test_y)
-
+        np.save(normalization_tt_path + 'train_x_in_%s_out_%s_range_%s.npy' % (n_predictions, n_next, train_range), train_x)
+        np.save(normalization_tt_path + 'train_y_in_%s_out_%s_range_%s.npy' % (n_predictions, n_next, train_range), train_y)
+        np.save(normalization_tt_path + 'test_x_in_%s_out_%s_range_%s.npy' % (n_predictions, n_next, train_range), test_x)
+        np.save(normalization_tt_path + 'test_y_in_%s_out_%s_range_%s.npy' % (n_predictions, n_next, train_range), test_y)

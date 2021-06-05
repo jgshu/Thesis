@@ -49,10 +49,11 @@ def testing(base_path, model_path, args, dt_string, model, specific_user_id):
     # test_x = np.load(normalization_tvt_path + file_name + '/validation_x_range_%s.npy' % args.train_range)
     # test_y = np.load(normalization_tvt_path + file_name + '/validation_y_range_%s.npy' % args.train_range)
 
-    test_x = np.load(normalization_tvt_path + file_name + '/test_x_range_%s.npy' % args.train_range)
-    test_y = np.load(normalization_tvt_path + file_name + '/test_y_range_%s.npy' % args.train_range)
+    test_x = np.load(normalization_tvt_path + file_name + '/test_x_in_%s_out_%s_range_%s.npy' % (args.seq_len, args.out_features, args.train_range))
+    test_y = np.load(normalization_tvt_path + file_name + '/test_y_in_%s_out_%s_range_%s.npy' % (args.seq_len, args.out_features, args.train_range))
 
-    test_y = scaler.inverse_transform(test_y)
+    # test_y = scaler.inverse_transform(test_y[:args.seq_len, 26])
+    test_y = scaler.inverse_transform(test_y[:, 26])
 
     for i in range(int(args.epochs / args.frequency_of_the_test)):
         try:
@@ -62,14 +63,28 @@ def testing(base_path, model_path, args, dt_string, model, specific_user_id):
             model.eval()
 
             # 模型用于测试集
+            # 全序列预测
+            # batch_size = test_x.shape[0]
+            # pred_list = []
+            # batch_test_x = test_x[:1, :, :]
+            # for j in range(args.seq_len):
+            #     batch_test_x_tensor = torch.from_numpy(batch_test_x).type(torch.Tensor)
+            #     batch_test_x_tensor = batch_test_x_tensor.to(device)
+            #     batch_test_y_pred_tensor = model(batch_test_x_tensor).to(device)
+            #     pred_list.append(batch_test_y_pred_tensor.detach().cpu().numpy()[0, :])
+            #     batch_test_x = np.append(batch_test_x[:, 1:, :], [[pred_list[j]]], axis=1)
+            #
+            # pred_array = np.array([e.tolist() for e in pred_list])
+            # test_y_pred = scaler.inverse_transform(pred_array[:, 26])
+
+            # 逐点预测
             test_x_tensor = torch.from_numpy(test_x).type(torch.Tensor)
             test_x_tensor = test_x_tensor.to(device)
             test_y_pred_tensor = model(test_x_tensor).to(device)
+            test_y_pred = scaler.inverse_transform(test_y_pred_tensor.detach().cpu().numpy()[:, 26])
 
-            test_y_pred = scaler.inverse_transform(test_y_pred_tensor.detach().cpu().numpy())
-
-            del test_x_tensor
-            del test_y_pred_tensor
+            # del test_x_tensor
+            # del test_y_pred_tensor
 
             # evaluation
             MAE = calcMAE(test_y, test_y_pred)

@@ -18,10 +18,10 @@ def load_partition_data_industry_load(normalization_tvt_path, args, specific_use
         if user_id == specific_user_id:
             logging.info('-------' + co_name + '--------')
             logging.info('-------' + user_id + '--------')
-            train_x = np.load(normalization_tvt_path + file_name + '/train_x_range_%s.npy' % args.train_range)
-            train_y = np.load(normalization_tvt_path + file_name + '/train_y_range_%s.npy' % args.train_range)
-            validation_x = np.load(normalization_tvt_path + file_name + '/validation_x_range_%s.npy' % args.train_range)
-            validation_y = np.load(normalization_tvt_path + file_name + '/validation_y_range_%s.npy' % args.train_range)
+            train_x = np.load(normalization_tvt_path + file_name + '/train_x_in_%s_out_%s_range_%s.npy' % (args.seq_len, args.out_features, args.train_range))
+            train_y = np.load(normalization_tvt_path + file_name + '/train_y_in_%s_out_%s_range_%s.npy' % (args.seq_len, args.out_features, args.train_range))
+            validation_x = np.load(normalization_tvt_path + file_name + '/validation_x_in_%s_out_%s_range_%s.npy' % (args.seq_len, args.out_features, args.train_range))
+            validation_y = np.load(normalization_tvt_path + file_name + '/validation_y_in_%s_out_%s_range_%s.npy' % (args.seq_len, args.out_features, args.train_range))
             break
 
     # 判断是否有Nan
