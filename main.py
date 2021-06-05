@@ -46,9 +46,6 @@ def add_args(parser):
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
                         help='number of features')
 
-    parser.add_argument('--n_hidden', type=int, default=100, metavar='N',
-                        help='number of hidden nodes')
-
     parser.add_argument('--seq_len', type=int, default=336, metavar='N',
                         help='sequence length')
 
