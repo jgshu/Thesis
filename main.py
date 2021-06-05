@@ -72,7 +72,7 @@ def add_args(parser):
 
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
 
-    parser.add_argument('--epochs', type=int, default=150, metavar='EP',
+    parser.add_argument('--epochs', type=int, default=10, metavar='EP',
                         help='how many epochs will be trained locally')
 
     parser.add_argument('--frequency_of_the_test', type=int, default=10,
@@ -130,7 +130,8 @@ def before_normalization(base_path, args, need_filter=False, need_ad=True):
         shutil.rmtree(type_num_path)
     os.makedirs(type_num_path)
 
-    anomaly_detection_path = base_path + 'output/img/type_%s/anomaly_detection/' % args.type_num
+    anomaly_detection_path = base_path + 'output/type_%s/day_%s_range_%s_%s/img/anomaly_detection/' \
+                 % (args.type_num, args.day_range, args.train_range, args.norm)
     if os.path.exists(anomaly_detection_path):
         shutil.rmtree(anomaly_detection_path)
     os.makedirs(anomaly_detection_path)
@@ -142,8 +143,7 @@ def before_normalization(base_path, args, need_filter=False, need_ad=True):
     feature_engineering(base_path, args.type_num, sum_flag=True, sum_user_id_list=sum_user_id_list)
     anomaly_detection(base_path, args.type_num, anomaly_detection_path, sum_flag=True, need_ad=need_ad)
     if need_filter:
-        daily_load_plotting(base_path, args.type_num, start=1, end=300, week_range=7, day_range=96,
-                            norm='standard', need_filter=True)
+        daily_load_plotting(base_path, args, start=1, end=300, week_range=7, need_filter=True)
 
 
 def split(base_path, args):
@@ -175,8 +175,7 @@ def data_preprocessing(base_path, args, need_filter=False):
 
         week_range = 7
         normalization(base_path, args)
-        daily_load_plotting(base_path, args.type_num, start=1, end=150, week_range=week_range, day_range=args.day_range,
-                            norm=args.norm)
+        daily_load_plotting(base_path, args, start=1, end=150, week_range=week_range)
 
         if args.train_range == 426:
             start = 426 + 122 + 8
@@ -185,8 +184,7 @@ def data_preprocessing(base_path, args, need_filter=False):
             start = 512 + 146 + 8
             end = 512 + 146 + 73
 
-        daily_load_plotting(base_path, args.type_num, start=start, end=end, week_range=week_range, day_range=args.day_range,
-                            norm=args.norm)
+        daily_load_plotting(base_path, args, start=start, end=end, week_range=week_range)
 
         split(base_path, args)
 
@@ -228,7 +226,8 @@ if __name__ == '__main__':
 
     # dt_string = '20210604_211729'
 
-    model_path = base_path + 'output/model/%s/' % dt_string
+    model_path = base_path + 'output/type_%s/day_%s_range_%s_%s/model/%s/save/' \
+                 % (args.type_num, args.day_range, args.train_range, args.norm, dt_string)
     if not os.path.exists(model_path):
         os.makedirs(model_path)
 

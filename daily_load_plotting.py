@@ -26,7 +26,7 @@ def get_dict(type_num_path, day_range, need_slice=False):
     return user_id_df_dict, user_id_co_name_dict
 
 
-def plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, font, start=1, end=40, week_range=7, day_range=96):
+def plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, font, day_range, start=1, end=40, week_range=7):
     user_id_list = list(user_id_df_dict.keys())
     left = 0
 
@@ -71,7 +71,7 @@ def plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, f
         plt.close(fig)
 
 
-def daily_load_plotting(base_path, type_num, start=1, end=40, week_range=7, day_range=96, norm='minmax', need_filter=False):
+def daily_load_plotting(base_path, args, start=1, end=40, week_range=7, need_filter=False):
     font = {
         'family': 'SimHei',
         'weight': 'normal',
@@ -80,27 +80,30 @@ def daily_load_plotting(base_path, type_num, start=1, end=40, week_range=7, day_
 
     if need_filter:
         # 导入数据
-        type_num_after_anomaly_detection_path = base_path + 'data/type_%s/after_anomaly_detection/' % (type_num)
-        user_id_df_dict, user_id_co_name_dict = get_dict(type_num_after_anomaly_detection_path, day_range)
+        type_num_after_anomaly_detection_path = base_path + 'data/type_%s/after_anomaly_detection/' % (args.type_num)
+        user_id_df_dict, user_id_co_name_dict = get_dict(type_num_after_anomaly_detection_path, args.day_range)
 
-        daily_load_path = base_path + 'output/img/type_%s/daily_load/after_anomaly_detection/' % (type_num)
-        plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, font, start=start, end=end,
-                           week_range=week_range, day_range=day_range)
+        daily_load_path = base_path + 'output/type_%s/day_%s_range_%s_%s/img/daily_load_filter/' \
+                 % (args.type_num, args.day_range, args.train_range, args.norm)
+        plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, font, args.day_range,
+                           start=start, end=end,week_range=week_range)
     else:
         # 导入数据
         print('')
-        type_num_after_anomaly_detection_path = base_path + 'data/type_%s/after_anomaly_detection/' % (type_num)
-        user_id_df_dict, user_id_co_name_dict = get_dict(type_num_after_anomaly_detection_path, day_range,
+        type_num_after_anomaly_detection_path = base_path + 'data/type_%s/after_anomaly_detection/' % args.type_num
+        user_id_df_dict, user_id_co_name_dict = get_dict(type_num_after_anomaly_detection_path, args.day_range,
                                                          need_slice=True)
 
-        daily_load_path = base_path + 'output/img/type_%s/daily_load/day_%s/after_anomaly_detection/' % (
-        type_num, day_range)
-        plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, font, start=start, end=end,
-                           week_range=week_range, day_range=day_range)
+        daily_load_path = base_path + 'output/type_%s/day_%s_range_%s_%s/img/daily_load/after_anomaly_detection/' \
+                 % (args.type_num, args.day_range, args.train_range, args.norm)
+        plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, font, args.day_range,
+                           start=start, end=end,week_range=week_range)
         # 导入数据
-        type_num_normalization_path = base_path + 'data/type_%s/day_%s/%s_normalization/' % (type_num, day_range, norm)
-        user_id_df_dict, user_id_co_name_dict = get_dict(type_num_normalization_path, day_range)
+        type_num_normalization_path = base_path + 'data/type_%s/day_%s/%s_normalization/' \
+                                      % (args.type_num, args.day_range, args.norm)
+        user_id_df_dict, user_id_co_name_dict = get_dict(type_num_normalization_path, args.day_range)
 
-        daily_load_path = base_path + 'output/img/type_%s/daily_load/day_%s/%s_normalization/' % (type_num, day_range, norm)
-        plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, font, start=start, end=end,
-                           week_range=week_range, day_range=day_range)
+        daily_load_path = base_path + 'output/type_%s/day_%s_range_%s_%s/img/daily_load/normalization/' \
+                 % (args.type_num, args.day_range, args.train_range, args.norm)
+        plot_by_week_range(daily_load_path, user_id_df_dict, user_id_co_name_dict, font, args.day_range,
+                           start=start, end=end, week_range=week_range)
