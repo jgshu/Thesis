@@ -10,7 +10,7 @@ class SLSTM(nn.Module):
     def __init__(self, args, device='cpu'):
         super(SLSTM, self).__init__()
         self.input_dim = args.n_features
-        self.output_dim = args.out_features
+        self.output_dim = args.n_features
         self.hidden_dim = args.hidRNN
         self.seq_len = args.seq_len
         self.num_layers = args.n_layers
@@ -47,7 +47,7 @@ class SLSTM(nn.Module):
             x,
             (h0.detach(), c0.detach())
         )
-        last_time_step = lstm_out[:, -1].view(-1, self.hidden_dim * 2)
+        last_time_step = lstm_out[:, -1].view(-1, self.hidden_dim)
         out = self.reg(last_time_step)
         return out
 
@@ -59,7 +59,7 @@ class BiLSTM(nn.Module):
     def __init__(self, args, device='cpu'):
         super(BiLSTM, self).__init__()
         self.input_dim = args.n_features
-        self.output_dim = args.out_features
+        self.output_dim = args.n_features
         self.hidden_dim = args.hidRNN
         self.seq_len = args.seq_len
         self.num_layers = args.n_layers

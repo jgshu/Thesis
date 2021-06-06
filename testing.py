@@ -83,9 +83,6 @@ def testing(base_path, model_path, args, dt_string, model, specific_user_id):
             test_y_pred_tensor = model(test_x_tensor).to(device)
             test_y_pred = scaler.inverse_transform(test_y_pred_tensor.detach().cpu().numpy()[:, 26])
 
-            # del test_x_tensor
-            # del test_y_pred_tensor
-
             # evaluation
             MAE = calcMAE(test_y, test_y_pred)
             print("test MAE", MAE)
@@ -97,6 +94,11 @@ def testing(base_path, model_path, args, dt_string, model, specific_user_id):
             print("test SMAPE", SMAPE)
 
             test_plotting(base_path, args, file_name, dt_string, test_y, test_y_pred, specific_user_id)
+
+            del test_x_tensor
+            del test_y_pred_tensor
+            del test_y_pred
+
         except Exception as e:
             print(e)
 

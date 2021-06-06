@@ -21,11 +21,11 @@ def normalization(df, norm):
     return df
 
 
-def data_normalization(base_path, type_num, day_range=96, norm='minmax', sum_flag=False):
-    type_num_after_anomaly_detection_path = base_path + 'data/type_%s/after_anomaly_detection/' % type_num
-    type_num_normalization_path = base_path + 'data/type_%s/day_%s/%s_normalization/' % (type_num, day_range, norm)
+def data_normalization(base_path, args, sum_flag=False):
+    type_num_after_anomaly_detection_path = base_path + 'data/type_%s/after_anomaly_detection/' % args.type_num
+    type_num_normalization_path = base_path + 'data/type_%s/day_%s/%s_normalization/' % (args.type_num, args.day_range, args.norm)
 
-    sum_filename = 'type%s_%s' % (type_num, type_num)
+    sum_filename = 'type%s_%s' % (args.type_num, args.type_num)
     file_names_list = find_files(type_num_after_anomaly_detection_path)
 
     if sum_flag:
@@ -47,10 +47,10 @@ def data_normalization(base_path, type_num, day_range=96, norm='minmax', sum_fla
         df = pd.read_csv(type_num_after_anomaly_detection_path + file_name + '.csv')
 
         # 归一化
-        df = normalization(df, norm)
+        df = normalization(df, args.norm)
 
         # 切片
-        slice_range = int(96 / day_range)
+        slice_range = int(96 / args.day_range)
         df = df[::slice_range]
 
         # 输出csv文件
