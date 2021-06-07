@@ -37,9 +37,9 @@ def eval(test_y, test_y_pred):
 
 
 # 逐点预测point-to-point prediction
-def point_to_point(test_path, model_path, args, model_num, test_x, test_y, scaler, dt_string, model, specific_user_id, device):
+def point_to_point(test_path, model_path, args, test_x, test_y, scaler, dt_string, model, specific_user_id, device):
     test_y = scaler.inverse_transform(test_y[:, 26])
-    for i in range(model_num):
+    for i in range(int(args.epochs / args.frequency_of_the_test)):
         try:
             file_name = 'model_%02d' % i
             print('-------%s-------' % file_name)
@@ -61,9 +61,9 @@ def point_to_point(test_path, model_path, args, model_num, test_x, test_y, scale
             print(e)
 
 # 全序列预测 full sequence prediction
-def full_sequence(test_path, model_path, args, model_num, test_x, test_y, scaler, dt_string, model, specific_user_id, device):
+def full_sequence(test_path, model_path, args, test_x, test_y, scaler, dt_string, model, specific_user_id, device):
     test_y = scaler.inverse_transform(test_y[:args.seq_len, 26])
-    for i in range(model_num):
+    for i in range(int(args.epochs / args.frequency_of_the_test)):
         try:
             file_name = 'model_%02d' % i
             print('-------%s-------' % file_name)
@@ -93,9 +93,9 @@ def full_sequence(test_path, model_path, args, model_num, test_x, test_y, scaler
             print(e)
 
 
-def multi_sequence(test_path, model_path, args, model_num, test_x, test_y, scaler, dt_string, model, specific_user_id, device):
+def multi_sequence(test_path, model_path, args, test_x, test_y, scaler, dt_string, model, specific_user_id, device):
     test_y = scaler.inverse_transform(test_y[:, 26])
-    for i in range(model_num):
+    for i in range(int(args.epochs / args.frequency_of_the_test)):
         try:
             file_name = 'model_%02d' % i
             print('-------%s-------' % file_name)
@@ -156,37 +156,23 @@ def testing(base_path, model_path, args, dt_string, model, specific_user_id, typ
     test_y = np.load(normalization_tvt_path + specific_user_id_file_name + '/test_y_in_%s_out_%s_range_%s.npy' % (args.seq_len, args.out_features, args.train_range))
 
     if type == 'p2p':
-        if args.fed_alg is not None:
-            test_path = base_path + 'output/type_%s/day_%s_range_%s_%s_%s/model/%s/img_p2p/' \
-                        % (args.type_num, args.day_range, args.train_range, args.norm, args.fed_alg, dt_string)
-            model_num = args.comm_round
-        else:
-            test_path = base_path +'output/type_%s/day_%s_range_%s_%s/model/%s/img_p2p/' \
-                         % (args.type_num, args.day_range, args.train_range, args.norm, dt_string)
-            model_num = int(args.epochs / args.frequency_of_the_test)
-        point_to_point(test_path, model_path, args, model_num, test_x, test_y, scaler, dt_string, model, specific_user_id,
+        test_path = base_path +'output/type_%s/day_%s_range_%s_%s/model/%s/img_p2p/' \
+                     % (args.type_num, args.day_range, args.train_range, args.norm, dt_string)
+        point_to_point(test_path, model_path, args, test_x, test_y, scaler, dt_string, model, specific_user_id,
                            device)
     elif type == 'fn':
-        if args.fed_alg is not None:
-            test_path = base_path + 'output/type_%s/day_%s_range_%s_%s_%s/model/%s/img_fn/' \
-                        % (args.type_num, args.day_range, args.train_range, args.norm, args.fed_alg, dt_string)
-            model_num = args.comm_round
-        else:
-            test_path = base_path +'output/type_%s/day_%s_range_%s_%s/model/%s/img_fn/' \
-                         % (args.type_num, args.day_range, args.train_range, args.norm, dt_string)
-            model_num = int(args.epochs / args.frequency_of_the_test)
-        full_sequence(test_path, model_path, args, model_num, test_x, test_y, scaler, dt_string, model, specific_user_id, device)
+        test_path = base_path +'output/type_%s/day_%s_range_%s_%s/model/%s/img_fs/' \
+                     % (args.type_num, args.day_range, args.train_range, args.norm, dt_string)
+        full_sequence(test_path, model_path, args, test_x, test_y, scaler, dt_string, model, specific_user_id, device)
     elif type == 'ms':
-        if args.fed_alg is not None:
-            test_path = base_path + 'output/type_%s/day_%s_range_%s_%s_%s/model/%s/img_ms/' \
-                        % (args.type_num, args.day_range, args.train_range, args.norm, args.fed_alg, dt_string)
-            model_num = args.comm_round
-        else:
-            test_path = base_path +'output/type_%s/day_%s_range_%s_%s/model/%s/img_ms/' \
-                         % (args.type_num, args.day_range, args.train_range, args.norm, dt_string)
-            model_num = int(args.epochs / args.frequency_of_the_test)
-        multi_sequence(test_path, model_path, args, model_num, test_x, test_y, scaler, dt_string, model, specific_user_id,
+        test_path = base_path +'output/type_%s/day_%s_range_%s_%s/model/%s/img_ms/' \
+                     % (args.type_num, args.day_range, args.train_range, args.norm, dt_string)
+        multi_sequence(test_path, model_path, args, test_x, test_y, scaler, dt_string, model, specific_user_id,
                            device)
+
+
+
+
 
 
 

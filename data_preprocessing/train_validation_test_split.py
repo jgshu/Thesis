@@ -44,9 +44,9 @@ def train_validation_test_split(base_path, args, sum_flag=False):
             validation_range = 122
             test_range = 73
         else:
-            train_range = int((365 + 366) * 0.6)
-            validation_range = int((365 + 366) * 0.2)
-            test_range = int((365 + 366) * 0.2)
+            train_range = int((365 + 366) * 0.8)
+            validation_range = int((365 + 366) * 0.1)
+            test_range = int((365 + 366) * 0.1)
 
         print('train_range:', train_range)
         print('validation_range:', validation_range)

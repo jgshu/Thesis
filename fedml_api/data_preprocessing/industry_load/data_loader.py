@@ -8,115 +8,103 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def get_tensor_data(user_id, type_num):
-    npy_path = "../../../../../../Downloads/Thesis-temp/output/train_test/type%s/" % type_num
-    dir_list = os.listdir(npy_path)
-    user_id_co_name_dict = {}
-    for i in range(len(dir_list)):
-        directory = dir_list[i]
-        c, u = directory[:].split('_')
-        # print(c)
-        user_id_co_name_dict[u] = c
-    co_name = user_id_co_name_dict[user_id]
-    print(co_name)
+def find_files(path, suffix='.csv'):
+    file_names = os.listdir(path)
+    if suffix == '.':
+        return [file_name for file_name in file_names]
+    else:
+        return [file_name[:-len(suffix)] for file_name in file_names if file_name.endswith(suffix)]
 
-    # TODO: 数据集：train_x_days_365.npy or train_x_days_90.npy
-    path = npy_path + '%s_%s/' % (co_name, user_id)
 
-    date_range = 365
+def get_tensor_data(base_path, args, specific_user_id):
+    normalization_tvt_path = base_path + 'data/type_%s/day_%s/%s_normalization_tvt/' % (
+    args.type_num, args.day_range, args.norm)
 
-    if date_range == 365:
-        train_x = np.load(path + 'train_x_days_365.npy')
-        train_y = np.load(path + 'train_y_days_365.npy')
-        test_x = np.load(path + 'test_x_days_365.npy')
-        test_y = np.load(path + 'test_y_days_365.npy')
-    elif date_range == 90:
-        train_x = np.load(path + 'train_x_days_90.npy')
-        train_y = np.load(path + 'train_y_days_90.npy')
-        test_x = np.load(path + 'test_x_days_90.npy')
-        test_y = np.load(path + 'test_y_days_90.npy')
+    file_names_list = find_files(normalization_tvt_path, suffix='.')
+    for file_name in file_names_list:
+        co_name, user_id = file_name.split('_')
+        if user_id == specific_user_id:
+            logging.info('-------' + co_name + '--------')
+            logging.info('-------' + user_id + '--------')
+            train_x = np.load(normalization_tvt_path + file_name + '/train_x_in_%s_out_%s_range_%s.npy' % (args.seq_len, args.out_features, args.train_range))
+            train_y = np.load(normalization_tvt_path + file_name + '/train_y_in_%s_out_%s_range_%s.npy' % (args.seq_len, args.out_features, args.train_range))
+            validation_x = np.load(normalization_tvt_path + file_name + '/validation_x_in_%s_out_%s_range_%s.npy' % (args.seq_len, args.out_features, args.train_range))
+            validation_y = np.load(normalization_tvt_path + file_name + '/validation_y_in_%s_out_%s_range_%s.npy' % (args.seq_len, args.out_features, args.train_range))
+            break
 
     train_x = torch.from_numpy(train_x).type(torch.Tensor)
     train_y = torch.from_numpy(train_y).type(torch.Tensor)
-    test_x = torch.from_numpy(test_x).type(torch.Tensor)
-    test_y = torch.from_numpy(test_y).type(torch.Tensor)
+    validation_x = torch.from_numpy(validation_x).type(torch.Tensor)
+    validation_y = torch.from_numpy(validation_y).type(torch.Tensor)
 
-    return train_x, train_y, test_x, test_y
+    return train_x, train_y, validation_x, validation_y
 
 
 # for centralized training
-def get_dataloader(dataset, user_id, type_num, train_bs, test_bs):
+def get_dataloader(base_path, args, user_id):
 
-    return get_dataloader_industry_load(user_id, type_num, train_bs, test_bs)
+    return get_dataloader_industry_load(base_path, args, user_id)
 
 
-def get_dataloader_industry_load(user_id, type_num, train_bs, test_bs):
-    train_x, train_y, test_x, test_y = get_tensor_data(user_id, type_num)
+def get_dataloader_industry_load(base_path, args, user_id):
+    train_x, train_y, validation_x, validation_y = get_tensor_data(base_path, args, user_id)
 
     train = torch.utils.data.TensorDataset(train_x, train_y)
-    test = torch.utils.data.TensorDataset(test_x, test_y)
+    validation = torch.utils.data.TensorDataset(validation_x, validation_y)
 
     train_loader = torch.utils.data.DataLoader(dataset=train,
-                                               batch_size=train_bs,
-                                               shuffle=False)
-    test_loader = torch.utils.data.DataLoader(dataset=test,
-                                              batch_size=test_bs,
-                                              shuffle=False)
+                                               batch_size=args.batch_size,
+                                               shuffle=False,
+                                               drop_last=True)
+    validation_loader = torch.utils.data.DataLoader(dataset=validation,
+                                                    batch_size=args.batch_size,
+                                                    shuffle=False,
+                                                    drop_last=True)
 
-    return train_loader, test_loader
+    return train_loader, validation_loader
 
 
-def load_partition_data_industry_load(dataset, type_num, client_number, batch_size):
+def load_partition_data_industry_load(base_path, args):
     class_num = 0
     type_server_dict = {
-        3: ['3'],
+        7: ['7'],
         10: ['10']
     }
     type_clients_dict = {
-        3: ['809035870', '809033085'],
-        # 10: ['638024734', '662615482', '153406449', '930146713', '150032002']
-        10: ['153406449', '930146713']
+        # 3: ['809035870', '809033085'],
+        7: ['930131545', '332212524', '150991350'],
+        10: ['638164411', '930146713', '430174717']
     }
-    server = type_server_dict[type_num]
-    clients = type_clients_dict[type_num]
+    server = type_server_dict[args.type_num]
+    clients = type_clients_dict[args.type_num]
 
-    train_data_global, test_data_global = get_dataloader(dataset,
-                                                         server[0],
-                                                         type_num,
-                                                         batch_size,
-                                                         batch_size
-                                                         )
+    train_data_global, validation_data_global = get_dataloader(base_path, args, server[0])
     logging.info("train_dl_global number = " + str(len(train_data_global)))
     logging.info("test_dl_global number = " + str(len(train_data_global)))
     train_data_num = len(train_data_global)
-    test_data_num = len(test_data_global)
+    validation_data_num = len(validation_data_global)
 
     # get local dataset
     data_local_num_dict = dict()
     train_data_local_dict = dict()
-    test_data_local_dict = dict()
+    validation_data_local_dict = dict()
 
-    for client_idx in range(client_number):
+    for client_idx in range(args.client_num_in_total):
 
         logging.info("client_idx = %d, local_sample_number = %s" % (client_idx, clients[client_idx]))
 
-        train_data_local, test_data_local = get_dataloader(dataset,
-                                                           clients[client_idx],
-                                                           type_num,
-                                                           batch_size,
-                                                           batch_size,
-                                                           )
+        train_data_local, validation_data_local = get_dataloader(base_path, args, clients[client_idx])
         user_train_data_num = len(train_data_local)
-        user_test_data_num = len(test_data_local)
+        user_validation_data_num = len(validation_data_local)
 
         logging.info("client_idx = %d, batch_num_train_local = %d, batch_num_test_local = %d" % (
-            client_idx, len(train_data_local), len(test_data_local)))
+            client_idx, len(train_data_local), len(validation_data_local)))
 
         train_data_local_dict[client_idx] = train_data_local
-        test_data_local_dict[client_idx] = test_data_local
+        validation_data_local_dict[client_idx] = validation_data_local
 
         # TODO:  client[client_idx]的sample num，目前不确定是多少，但是由于权重是(sample1)/(sample1+sample2)=0.5，故不影响
         data_local_num_dict[client_idx] = user_train_data_num
 
-    return train_data_num, test_data_num, train_data_global, test_data_global, \
-           data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num
+    return train_data_num, validation_data_num, train_data_global, validation_data_global, \
+           data_local_num_dict, train_data_local_dict, validation_data_local_dict, class_num

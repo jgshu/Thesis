@@ -11,29 +11,30 @@ from fedml_api.standalone.fedavg.client import Client
 
 
 class FedAvgAPI(object):
-    def __init__(self, dataset, device, args, model_trainer):
+    def __init__(self, model_path, dataset, device, args, model_trainer):
+        self.model_path = model_path
         self.device = device
         self.args = args
-        [train_data_num, test_data_num, train_data_global, test_data_global,
-         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num] = dataset
+        [train_data_num, validation_data_num, train_data_global, validation_data_global,
+         train_data_local_num_dict, train_data_local_dict, validation_data_local_dict, class_num] = dataset
         self.train_global = train_data_global
-        self.test_global = test_data_global
-        self.val_global = None
+        self.validation_global = validation_data_global
+        # self.val_global = None
         self.train_data_num_in_total = train_data_num
-        self.test_data_num_in_total = test_data_num
+        self.validation_data_num_in_total = validation_data_num
 
         self.client_list = []
         self.train_data_local_num_dict = train_data_local_num_dict
         self.train_data_local_dict = train_data_local_dict
-        self.test_data_local_dict = test_data_local_dict
+        self.validation_data_local_dict = validation_data_local_dict
 
         self.model_trainer = model_trainer
-        self._setup_clients(train_data_local_num_dict, train_data_local_dict, test_data_local_dict, model_trainer)
+        self._setup_clients(train_data_local_num_dict, train_data_local_dict, validation_data_local_dict, model_trainer)
 
-    def _setup_clients(self, train_data_local_num_dict, train_data_local_dict, test_data_local_dict, model_trainer):
+    def _setup_clients(self, train_data_local_num_dict, train_data_local_dict, validation_data_local_dict, model_trainer):
         logging.info("############setup_clients (START)#############")
         for client_idx in range(self.args.client_num_per_round):
-            c = Client(client_idx, train_data_local_dict[client_idx], test_data_local_dict[client_idx],
+            c = Client(client_idx, train_data_local_dict[client_idx], validation_data_local_dict[client_idx],
                        train_data_local_num_dict[client_idx], self.args, self.device, model_trainer)
             self.client_list.append(c)
         logging.info("############setup_clients (END)#############")
@@ -58,7 +59,7 @@ class FedAvgAPI(object):
                 # update dataset
                 client_idx = client_indexes[idx]
                 client.update_local_dataset(client_idx, self.train_data_local_dict[client_idx],
-                                            self.test_data_local_dict[client_idx],
+                                            self.validation_data_local_dict[client_idx],
                                             self.train_data_local_num_dict[client_idx])
 
                 # train on new dataset
@@ -76,14 +77,13 @@ class FedAvgAPI(object):
                 self._local_test_on_all_clients(round_idx)
             # per {frequency_of_the_test} round
             elif round_idx % self.args.frequency_of_the_test == 0:
-                if self.args.dataset.startswith("stackoverflow"):
-                    self._local_test_on_validation_set(round_idx)
-                else:
-                    self._local_test_on_all_clients(round_idx)
+                # if self.args.dataset.startswith("stackoverflow"):
+                #     self._local_test_on_validation_set(round_idx)
+                # else:
+                self._local_test_on_all_clients(round_idx)
 
-            now = datetime.now()
-            dt_string = now.strftime("%Y%m%d-%H%M%S")
-            torch.save(self.model_trainer.get_model_params(), './temp-%s.pth' % dt_string)
+            model_num = round_idx
+            torch.save(self.model_trainer.get_model_params(), self.model_path + 'model_%02d.pth' % model_num)
 
     def _client_sampling(self, round_idx, client_num_in_total, client_num_per_round):
         if client_num_in_total == client_num_per_round:
@@ -140,10 +140,10 @@ class FedAvgAPI(object):
             Note: for datasets like "fed_CIFAR100" and "fed_shakespheare",
             the training client number is larger than the testing client number
             """
-            if self.test_data_local_dict[client_idx] is None:
+            if self.validation_data_local_dict[client_idx] is None:
                 continue
             client.update_local_dataset(0, self.train_data_local_dict[client_idx],
-                                        self.test_data_local_dict[client_idx],
+                                        self.validation_data_local_dict[client_idx],
                                         self.train_data_local_num_dict[client_idx])
             # train data
             train_local_metrics = client.local_test(False)

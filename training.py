@@ -59,7 +59,6 @@ def load_partition_data_industry_load(normalization_tvt_path, args, specific_use
 
 
 def load_data(base_path, args, user_id):
-
     normalization_tvt_path = base_path + 'data/type_%s/day_%s/%s_normalization_tvt/' % (
     args.type_num, args.day_range, args.norm)
     logging.info("load_data. dataset_name = type_%s, user_id = %s" % (args.type_num, user_id))

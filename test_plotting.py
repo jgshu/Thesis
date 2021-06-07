@@ -4,16 +4,16 @@ import matplotlib.pyplot as plt
 import os
 
 
-def plot_by_week_range(test_path, args, file_name, test_y, test_y_pred, color_list, font, specific_user_id, week_range=7):
+def plot_by_per_day(test_path, args, file_name, test_y, test_y_pred, color_list, font, specific_user_id, per_day=7):
     fig = plt.figure()
     fig.set_size_inches(40, 60, forward=True)
-    week_len = test_y.shape[0] // (week_range * args.day_range)
+    week_len = test_y.shape[0] // (per_day * args.day_range)
 
     for i in range(week_len - 1):
         ax = plt.subplot(week_len, 1, i + 1)
 
-        y1 = test_y[i * week_range * args.day_range: (i+1) * week_range * args.day_range]
-        y2 = test_y_pred[i * week_range * args.day_range: (i+1) * week_range * args.day_range]
+        y1 = test_y[i * per_day * args.day_range: (i+1) * per_day * args.day_range]
+        y2 = test_y_pred[i * per_day * args.day_range: (i+1) * per_day * args.day_range]
 
         x = range(0, y1.shape[0])
         ax.plot(x, y1, color_list[0])
@@ -22,13 +22,13 @@ def plot_by_week_range(test_path, args, file_name, test_y, test_y_pred, color_li
         plt.yticks(font=font)
         ax.set_ylabel('values', font=font)
         ax.set_xticks(np.arange(0, y1.shape[0], args.day_range))
-        ax.set_xticklabels(np.arange(0, week_range))
+        ax.set_xticklabels(np.arange(0, per_day))
 
-    plt.savefig(test_path + 'stacked_%02d_week_%s_%s.jpg' % (week_range, specific_user_id, file_name))
+    plt.savefig(test_path + 'stacked_per_day_%02d_uid_%s_%s.jpg' % (per_day, specific_user_id, file_name))
     plt.close(fig)
 
 
-def plot_single(test_path, args, file_name, test_y, test_y_pred, color_list, font, specific_user_id, week_range=7):
+def plot_single(test_path, args, file_name, test_y, test_y_pred, color_list, font, specific_user_id, per_day=7):
     fig, ax = plt.subplots(figsize=(100, 20))
     y1 = test_y
     y2 = test_y_pred
@@ -38,13 +38,13 @@ def plot_single(test_path, args, file_name, test_y, test_y_pred, color_list, fon
     plt.xticks(font=font)
     plt.yticks(font=font)
     ax.set_ylabel('values', font=font)
-    ax.set_xticks(np.arange(0, y1.shape[0], week_range * args.day_range))
-    ax.set_xticklabels(np.arange(0, int(y1.shape[0] / (week_range * args.day_range)) + 1))
+    ax.set_xticks(np.arange(0, y1.shape[0], per_day * args.day_range))
+    ax.set_xticklabels(np.arange(0, int(y1.shape[0] / (per_day * args.day_range)) + 1))
 
     plt.savefig(test_path + 'single_%s_%s.jpg' % (specific_user_id, file_name))
     plt.close(fig)
 
-def test_plotting(base_path, args, file_name, dt_string, test_y, test_y_pred, specific_user_id):
+def test_plotting(test_path, args, file_name, dt_string, test_y, test_y_pred, specific_user_id):
     font = {
         'family': 'SimHei',
         'weight': 'normal',
@@ -59,12 +59,9 @@ def test_plotting(base_path, args, file_name, dt_string, test_y, test_y_pred, sp
     color_list = [CB91_Blue, CB91_Pink, CB91_Green, CB91_Amber,
                   CB91_Purple, CB91_Violet]
 
-    test_path = base_path +'output/type_%s/day_%s_range_%s_%s/model/%s/img/' \
-                 % (args.type_num, args.day_range, args.train_range, args.norm, dt_string)
     if not os.path.exists(test_path):
         os.makedirs(test_path)
-
-    plot_by_week_range(test_path, args, file_name, test_y, test_y_pred, color_list, font, specific_user_id)
+    plot_by_per_day(test_path, args, file_name, test_y, test_y_pred, color_list, font, specific_user_id)
     plot_single(test_path, args, file_name, test_y, test_y_pred, color_list, font, specific_user_id)
 
 

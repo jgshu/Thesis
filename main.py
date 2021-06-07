@@ -37,7 +37,7 @@ def add_args(parser):
     parser.add_argument('--seq_len', type=int, default=48*7, metavar='N',
                         help='sequence length')
 
-    parser.add_argument('--train_range', type=int, default=438, metavar='N',
+    parser.add_argument('--train_range', type=int, default=584, metavar='N',
                         help='day_range')
 
     parser.add_argument('--epochs', type=int, default=200, metavar='EP',
@@ -55,7 +55,7 @@ def add_args(parser):
     parser.add_argument('--out_features', type=int, default=1, metavar='N',
                         help='number of out features')
 
-    parser.add_argument('--n_layers', type=int, default=3, metavar='N',
+    parser.add_argument('--n_layers', type=int, default=1, metavar='N',
                         help='number of layers')
 
     parser.add_argument('--lr', type=float, default=0.0001, metavar='LR',
@@ -139,7 +139,7 @@ def before_normalization(base_path, args, need_filter=False):
 
     sum_user_id_list = []
     feature_engineering(base_path, args.type_num, sum_flag=True, sum_user_id_list=sum_user_id_list)
-    anomaly_detection(base_path, args.type_num, anomaly_detection_path, sum_flag=True, need_ad=False)
+    # anomaly_detection(base_path, args.type_num, anomaly_detection_path, sum_flag=True, need_ad=False)
     anomaly_detection(base_path, args.type_num, anomaly_detection_path, sum_flag=True)
 
     if need_filter:
@@ -197,8 +197,7 @@ if __name__ == '__main__':
     model = create_model(args, device=device)
 
     # 用于挑选用户
-    # data_preprocessing(base_path, args.type_num, train_range=args.train_range, need_filter=True)
-    # data_preprocessing(base_path, args.type_num, train_range=args.train_range, need_filter=False)
+    # data_preprocessing(base_path, args, need_filter=True)
     data_preprocessing(base_path, args, need_filter=False)
 
     logging.basicConfig()
@@ -218,10 +217,11 @@ if __name__ == '__main__':
     )
 
     now = datetime.now()
-    dt_string = '%s_E%s_L%s_H%s_' % (args.model, args.epochs, args.lr, args.hidRNN) + now.strftime("%Y%m%d%H%M%S")
-    logger.info(dt_string)
+    dt_string = '%s_B%s_D%s_E%s_L%s_L%s_H%s_' \
+                % (args.model, args.batch_size, args.do, args.epochs, args.lr, args.n_layers, args.hidRNN) \
+                + now.strftime("%Y%m%d%H%M%S")
 
-    # dt_string = '20210606_170239'
+    # dt_string = 'LSTNet_B64_D0.2_E5_L0.0001_H100_20210607043134'
 
     model_path = base_path + 'output/type_%s/day_%s_range_%s_%s/model/%s/save/' \
                  % (args.type_num, args.day_range, args.train_range, args.norm, dt_string)
@@ -229,7 +229,8 @@ if __name__ == '__main__':
         os.makedirs(model_path)
 
     training(base_path, model_path, args, device, model, user_id)
-    testing(base_path, model_path, args, dt_string, model, user_id)
+    testing(base_path, model_path, args, dt_string, model, user_id, 'ms')
 
+    logger.info(dt_string)
     print('----------------------')
     print('dt_string:', dt_string)
