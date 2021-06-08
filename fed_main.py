@@ -23,7 +23,7 @@ def add_args(parser):
     return a parser added with args required by fit
     """
     # Training settings
-    parser.add_argument('--type_num', type=int, default=7, metavar='N',
+    parser.add_argument('--type_num', type=int, default=10, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--fed_alg', type=str, default='fedavg', metavar='N',
@@ -37,9 +37,6 @@ def add_args(parser):
 
     parser.add_argument('--train_range', type=int, default=584, metavar='N',
                         help='day_range')
-
-    parser.add_argument('--epochs', type=int, default=15, metavar='EP',
-                        help='how many epochs will be trained locally')
 
     parser.add_argument('--norm', type=str, default='standard', metavar='N',
                         help='normalization')
@@ -65,10 +62,10 @@ def add_args(parser):
     parser.add_argument('--batch_size', type=int, default=64, metavar='N',
                         help='input batch size for training (default: 64)')
 
-    parser.add_argument('--hidCNN', type=int, default=100,
+    parser.add_argument('--hidCNN', type=int, default=128,
                         help='number of CNN hidden units')
 
-    parser.add_argument('--hidRNN', type=int, default=100,
+    parser.add_argument('--hidRNN', type=int, default=128,
                         help='number of RNN hidden units')
 
     parser.add_argument('--CNN_kernel', type=int, default=6,
@@ -106,7 +103,10 @@ def add_args(parser):
     parser.add_argument('--client_num_per_round', type=int, default=3, metavar='NN',
                         help='number of workers')
 
-    parser.add_argument('--comm_round', type=int, default=10,
+    parser.add_argument('--epochs', type=int, default=10, metavar='EP',
+                        help='how many epochs will be trained locally')
+
+    parser.add_argument('--comm_round', type=int, default=20,
                         help='how many round of communications we should use')
 
     return parser
@@ -205,44 +205,38 @@ run = wandb.init(
 # torch.manual_seed(0)
 # torch.cuda.manual_seed_all(0)
 
-# now = datetime.now()
-# dt_string = '%s_B%s_D%s_E%s_L%s_L%s_H%s_' \
-#             % (args.model, args.batch_size, args.do, args.epochs, args.lr, args.n_layers, args.hidRNN) \
-#             + now.strftime("%Y%m%d%H%M%S")
-dt_string = 'LSTNet_B64_D0.2_E15_L0.0001_L1_H100_20210607174929'
+now = datetime.now()
+dt_string = '%s_B%s_C%s_D%s_E%s_L%s_L%s_H%s_' \
+            % (args.model, args.batch_size, args.comm_round,
+               args.do, args.epochs, args.lr, args.n_layers, args.hidRNN) \
+            + now.strftime("%Y%m%d%H%M%S")
+
+# dt_string = 'LSTNet_B64_D0.2_E15_L0.0001_L1_H128_20210608145623'
 
 model_path = base_path + 'output/type_%s/day_%s_range_%s_%s_%s/model/%s/save/' \
              % (args.type_num, args.day_range, args.train_range, args.norm, args.fed_alg, dt_string)
-
-
-
 if not os.path.exists(model_path):
     os.makedirs(model_path)
 
-# # load data
-# dataset = load_data(base_path, args)
-#
-# fedavgAPI = FedAvgAPI(model_path, dataset, device, args, model_trainer)
-# fedavgAPI.train()
+# load data
+dataset = load_data(base_path, args)
 
-type_server_dict = {
-    7: ['7'],
-    10: ['10']
-}
+fedavgAPI = FedAvgAPI(model_path, dataset, device, args, model_trainer)
+fedavgAPI.train()
+
 type_clients_dict = {
     # 3: ['809035870', '809033085'],
-    7: ['930131545', '332212524', '150991350'],
-    10: ['638164411', '930146713', '430174717']
+    7: ['930131545', '332212524', '150991350', '7'],
+    10: ['10', '638164411', '930146713', '430174717', '10']
 }
 
 type_clients_list = type_clients_dict[args.type_num]
 
-type = 'ms'
+model = create_model(args, device=device)
 
 for user_id in type_clients_list:
-    testing(base_path, model_path, args, dt_string, model, user_id, type=type)
-
-testing(base_path, model_path, args, dt_string, model, str(args.type_num), type=type)
+    testing(base_path, model_path, args, dt_string, model, user_id)
+    testing(base_path, model_path, args, dt_string, model, user_id, type='ms')
 
 logger.info(dt_string)
 print('----------------------')

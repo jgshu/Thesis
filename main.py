@@ -28,7 +28,7 @@ def add_args(parser):
     return a parser added with args required by fit
     """
     # Training settings
-    parser.add_argument('--type_num', type=int, default=7, metavar='N',
+    parser.add_argument('--type_num', type=int, default=10, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--day_range', type=int, default=48, metavar='N',
@@ -187,18 +187,24 @@ def data_preprocessing(base_path, args, need_filter=False):
 if __name__ == '__main__':
     base_path = '../../../Downloads/Thesis-temp/'
     parser = add_args(argparse.ArgumentParser(description='Thesis'))
+    parser.add_argument('--fed_alg')
     args = parser.parse_args()
 
-    server = [str(args.type_num)]
-    clients = ['638024734', '662615482']
-    user_id = server[0]
+    type_clients_dict = {
+        # 3: ['809035870', '809033085'],
+        7: ['930131545', '332212524', '150991350', '7'],
+        10: ['10', '638164411', '930146713', '430174717', '10']
+    }
+
+    type_clients_list = type_clients_dict[args.type_num]
+    user_id = type_clients_list[-1]
 
     device = torch.device("cuda:" + str(args.gpu) if torch.cuda.is_available() else "cpu")
     model = create_model(args, device=device)
 
     # 用于挑选用户
     # data_preprocessing(base_path, args, need_filter=True)
-    data_preprocessing(base_path, args, need_filter=False)
+    # data_preprocessing(base_path, args, need_filter=False)
 
     logging.basicConfig()
     # 禁止font manager的debug信息
@@ -217,11 +223,12 @@ if __name__ == '__main__':
     )
 
     now = datetime.now()
-    dt_string = '%s_B%s_D%s_E%s_L%s_L%s_H%s_' \
-                % (args.model, args.batch_size, args.do, args.epochs, args.lr, args.n_layers, args.hidRNN) \
+    dt_string = 'UID%s_%s_B%s_D%s_E%s_L%s_L%s_H%s_' \
+                % (user_id, args.model, args.batch_size, args.do, args.epochs, args.lr, args.n_layers, args.hidRNN) \
                 + now.strftime("%Y%m%d%H%M%S")
 
-    # dt_string = 'LSTNet_B64_D0.2_E5_L0.0001_H100_20210607043134'
+    # dt_string = 'BiLSTM_B64_D0.2_E200_L0.0001_L1_H128_20210608002143'
+
 
     model_path = base_path + 'output/type_%s/day_%s_range_%s_%s/model/%s/save/' \
                  % (args.type_num, args.day_range, args.train_range, args.norm, dt_string)
@@ -229,6 +236,7 @@ if __name__ == '__main__':
         os.makedirs(model_path)
 
     training(base_path, model_path, args, device, model, user_id)
+    testing(base_path, model_path, args, dt_string, model, user_id)
     testing(base_path, model_path, args, dt_string, model, user_id, 'ms')
 
     logger.info(dt_string)
