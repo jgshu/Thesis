@@ -68,9 +68,9 @@ def load_partition_data_industry_load(base_path, args, type_clients_list):
     class_num = 0
 
     server = type_clients_list[-1]
-    clients = type_clients_list[:-1]
+    clients_list = type_clients_list[:-1]
 
-    train_data_global, validation_data_global = get_dataloader(base_path, args, server[0])
+    train_data_global, validation_data_global = get_dataloader(base_path, args, server)
     logging.info("train_dl_global number = " + str(len(train_data_global)))
     logging.info("test_dl_global number = " + str(len(train_data_global)))
     train_data_num = len(train_data_global)
@@ -83,9 +83,9 @@ def load_partition_data_industry_load(base_path, args, type_clients_list):
 
     for client_idx in range(args.client_num_in_total):
 
-        logging.info("client_idx = %d, local_sample_number = %s" % (client_idx, clients[client_idx]))
+        logging.info("client_idx = %d, local_sample_number = %s" % (client_idx, clients_list[client_idx]))
 
-        train_data_local, validation_data_local = get_dataloader(base_path, args, clients[client_idx])
+        train_data_local, validation_data_local = get_dataloader(base_path, args, clients_list[client_idx])
         user_train_data_num = len(train_data_local)
         user_validation_data_num = len(validation_data_local)
 

@@ -180,7 +180,6 @@ def data_preprocessing(base_path, args, need_filter=False):
         before_normalization(base_path, args)
         normalization(base_path, args)
         plot_norm(base_path, args)
-
         split(base_path, args)
 
 

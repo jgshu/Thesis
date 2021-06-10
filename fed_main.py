@@ -23,7 +23,7 @@ def add_args(parser):
     return a parser added with args required by fit
     """
     # Training settings
-    parser.add_argument('--type_num', type=int, default=12, metavar='N',
+    parser.add_argument('--type_num', type=int, default=14, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--fed_alg', type=str, default='fedavg', metavar='N',
