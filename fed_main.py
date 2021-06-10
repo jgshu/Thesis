@@ -23,7 +23,7 @@ def add_args(parser):
     return a parser added with args required by fit
     """
     # Training settings
-    parser.add_argument('--type_num', type=int, default=10, metavar='N',
+    parser.add_argument('--type_num', type=int, default=12, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--fed_alg', type=str, default='fedavg', metavar='N',
@@ -112,7 +112,7 @@ def add_args(parser):
     return parser
 
 
-def load_data(base_path, args):
+def load_data(base_path, args, type_clients_list):
     # check if the centralized training is enabled
     centralized = True if args.client_num_in_total == 1 else False
 
@@ -127,7 +127,7 @@ def load_data(base_path, args):
     logging.info("load_data. type_num = %s" % args.type_num)
     train_data_num, test_data_num, train_data_global, test_data_global, \
     train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-    class_num = load_partition_data_industry_load(base_path, args)
+    class_num = load_partition_data_industry_load(base_path, args, type_clients_list)
 
     if centralized:
         train_data_local_num_dict = {
@@ -218,19 +218,20 @@ model_path = base_path + 'output/type_%s/day_%s_range_%s_%s_%s/model/%s/save/' \
 if not os.path.exists(model_path):
     os.makedirs(model_path)
 
-# load data
-dataset = load_data(base_path, args)
-
-fedavgAPI = FedAvgAPI(model_path, dataset, device, args, model_trainer)
-fedavgAPI.train()
-
 type_clients_dict = {
-    # 3: ['809035870', '809033085'],
     7: ['930131545', '332212524', '150991350', '7'],
-    10: ['638164411', '930146713', '430174717', '10']
+    10: ['638164411', '930146713', '430174717', '10'],
+    12: ['332233792', '150131331', '630007616', '12'],
+    14: ['154287848', '155162390', '650318004', '14']
 }
 
 type_clients_list = type_clients_dict[args.type_num]
+
+# load data
+dataset = load_data(base_path, args, type_clients_list)
+
+fedavgAPI = FedAvgAPI(model_path, dataset, device, args, model_trainer)
+fedavgAPI.train()
 
 model = create_model(args, device=device)
 

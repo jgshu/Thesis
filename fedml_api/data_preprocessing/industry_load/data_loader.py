@@ -64,19 +64,11 @@ def get_dataloader_industry_load(base_path, args, user_id):
     return train_loader, validation_loader
 
 
-def load_partition_data_industry_load(base_path, args):
+def load_partition_data_industry_load(base_path, args, type_clients_list):
     class_num = 0
-    type_server_dict = {
-        7: ['7'],
-        10: ['10']
-    }
-    type_clients_dict = {
-        # 3: ['809035870', '809033085'],
-        7: ['930131545', '332212524', '150991350'],
-        10: ['638164411', '930146713', '430174717']
-    }
-    server = type_server_dict[args.type_num]
-    clients = type_clients_dict[args.type_num]
+
+    server = type_clients_list[-1]
+    clients = type_clients_list[:-1]
 
     train_data_global, validation_data_global = get_dataloader(base_path, args, server[0])
     logging.info("train_dl_global number = " + str(len(train_data_global)))

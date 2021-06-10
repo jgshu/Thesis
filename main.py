@@ -28,7 +28,7 @@ def add_args(parser):
     return a parser added with args required by fit
     """
     # Training settings
-    parser.add_argument('--type_num', type=int, default=10, metavar='N',
+    parser.add_argument('--type_num', type=int, default=14, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--day_range', type=int, default=48, metavar='N',
@@ -67,10 +67,10 @@ def add_args(parser):
     parser.add_argument('--batch_size', type=int, default=64, metavar='N',
                         help='input batch size for training (default: 64)')
 
-    parser.add_argument('--hidCNN', type=int, default=100,
+    parser.add_argument('--hidCNN', type=int, default=128,
                         help='number of CNN hidden units')
 
-    parser.add_argument('--hidRNN', type=int, default=100,
+    parser.add_argument('--hidRNN', type=int, default=128,
                         help='number of RNN hidden units')
 
     parser.add_argument('--CNN_kernel', type=int, default=6,
@@ -191,9 +191,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     type_clients_dict = {
-        # 3: ['809035870', '809033085'],
         7: ['930131545', '332212524', '150991350', '7'],
-        10: ['638164411', '930146713', '430174717', '10']
+        10: ['638164411', '930146713', '430174717', '10'],
+        12: ['332233792', '150131331', '630007616', '12'],
+        14: ['154287848', '155162390', '650318004', '14']
     }
 
     type_clients_list = type_clients_dict[args.type_num]
@@ -204,7 +205,7 @@ if __name__ == '__main__':
 
     # 用于挑选用户
     # data_preprocessing(base_path, args, need_filter=True)
-    # data_preprocessing(base_path, args, need_filter=False)
+    data_preprocessing(base_path, args, need_filter=False)
 
     logging.basicConfig()
     # 禁止font manager的debug信息
@@ -228,7 +229,6 @@ if __name__ == '__main__':
                 + now.strftime("%Y%m%d%H%M%S")
 
     # dt_string = 'BiLSTM_B64_D0.2_E200_L0.0001_L1_H128_20210608002143'
-
 
     model_path = base_path + 'output/type_%s/day_%s_range_%s_%s/model/%s/save/' \
                  % (args.type_num, args.day_range, args.train_range, args.norm, dt_string)
