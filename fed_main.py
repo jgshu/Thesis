@@ -23,7 +23,7 @@ def add_args(parser):
     return a parser added with args required by fit
     """
     # Training settings
-    parser.add_argument('--type_num', type=int, default=14, metavar='N',
+    parser.add_argument('--type_num', type=int, default=0, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--fed_alg', type=str, default='fedavg', metavar='N',
@@ -97,16 +97,16 @@ def add_args(parser):
     parser.add_argument('--frequency_of_the_test', type=int, default=10,
                         help='the frequency of the test')
 
-    parser.add_argument('--client_num_in_total', type=int, default=3, metavar='NN',
+    parser.add_argument('--client_num_in_total', type=int, default=9, metavar='NN',
                         help='number of workers in a distributed cluster')
 
-    parser.add_argument('--client_num_per_round', type=int, default=3, metavar='NN',
+    parser.add_argument('--client_num_per_round', type=int, default=9, metavar='NN',
                         help='number of workers')
 
     parser.add_argument('--epochs', type=int, default=10, metavar='EP',
                         help='how many epochs will be trained locally')
 
-    parser.add_argument('--comm_round', type=int, default=20,
+    parser.add_argument('--comm_round', type=int, default=15,
                         help='how many round of communications we should use')
 
     return parser
@@ -219,10 +219,15 @@ if not os.path.exists(model_path):
     os.makedirs(model_path)
 
 type_clients_dict = {
+    0: ['930131545', '332212524', '150991350',
+        '638164411', '930146713', '430174717',
+        '332233792', '150131331', '630007616',
+        '0'],
     7: ['930131545', '332212524', '150991350', '7'],
     10: ['638164411', '930146713', '430174717', '10'],
     12: ['332233792', '150131331', '630007616', '12'],
-    14: ['154287848', '155162390', '650318004', '14']
+    14: ['154287848', '400005515', '650318004', '14'],
+    11: ['11']
 }
 
 type_clients_list = type_clients_dict[args.type_num]

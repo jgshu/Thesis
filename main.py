@@ -28,7 +28,7 @@ def add_args(parser):
     return a parser added with args required by fit
     """
     # Training settings
-    parser.add_argument('--type_num', type=int, default=14, metavar='N',
+    parser.add_argument('--type_num', type=int, default=12, metavar='N',
                         help='dataset used for training')
 
     parser.add_argument('--day_range', type=int, default=48, metavar='N',
@@ -46,7 +46,7 @@ def add_args(parser):
     parser.add_argument('--norm', type=str, default='standard', metavar='N',
                         help='normalization')
 
-    parser.add_argument('--model', type=str, default='LSTNet', metavar='N',
+    parser.add_argument('--model', type=str, default='SLSTM', metavar='N',
                         help='neural network used in training')
 
     parser.add_argument('--n_features', type=int, default=27, metavar='N',
@@ -55,7 +55,7 @@ def add_args(parser):
     parser.add_argument('--out_features', type=int, default=1, metavar='N',
                         help='number of out features')
 
-    parser.add_argument('--n_layers', type=int, default=1, metavar='N',
+    parser.add_argument('--n_layers', type=int, default=3, metavar='N',
                         help='number of layers')
 
     parser.add_argument('--lr', type=float, default=0.0001, metavar='LR',
@@ -70,7 +70,7 @@ def add_args(parser):
     parser.add_argument('--hidCNN', type=int, default=128,
                         help='number of CNN hidden units')
 
-    parser.add_argument('--hidRNN', type=int, default=128,
+    parser.add_argument('--hidRNN', type=int, default=64,
                         help='number of RNN hidden units')
 
     parser.add_argument('--CNN_kernel', type=int, default=6,
@@ -190,21 +190,26 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     type_clients_dict = {
+        0: ['930131545', '332212524', '150991350',
+            '638164411', '930146713', '430174717',
+            '332233792', '150131331', '630007616',
+            '0'],
         7: ['930131545', '332212524', '150991350', '7'],
         10: ['638164411', '930146713', '430174717', '10'],
         12: ['332233792', '150131331', '630007616', '12'],
-        14: ['154287848', '155162390', '650318004', '14']
+        14: ['154287848', '400005515', '650318004', '14'],
+        11: ['11']
     }
 
     type_clients_list = type_clients_dict[args.type_num]
-    user_id = type_clients_list[-1]
+    user_id = type_clients_list[2]
 
     device = torch.device("cuda:" + str(args.gpu) if torch.cuda.is_available() else "cpu")
     model = create_model(args, device=device)
 
     # 用于挑选用户
     # data_preprocessing(base_path, args, need_filter=True)
-    data_preprocessing(base_path, args, need_filter=False)
+    # data_preprocessing(base_path, args, need_filter=False)
 
     logging.basicConfig()
     # 禁止font manager的debug信息
